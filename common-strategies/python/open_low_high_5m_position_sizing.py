@@ -51,9 +51,7 @@ class PositionSizingConfig:
     min_first_candle_volume: float
     min_average_volume: float
     max_gap_pct: float
-    brokerage_entry_fee: float
-    brokerage_exit_fee: float
-    other_charges: float
+    cost_multiplier: float
     equity_slippage: float
     derivatives_slippage: float
     commodities_slippage: float
@@ -111,9 +109,7 @@ def config_strategy_view(config: PositionSizingConfig) -> base.StrategyConfig:
         min_first_candle_volume=config.min_first_candle_volume,
         min_average_volume=config.min_average_volume,
         max_gap_pct=config.max_gap_pct,
-        brokerage_entry_fee=config.brokerage_entry_fee,
-        brokerage_exit_fee=config.brokerage_exit_fee,
-        other_charges=config.other_charges,
+        cost_multiplier=config.cost_multiplier,
         equity_slippage=config.equity_slippage,
         derivatives_slippage=config.derivatives_slippage,
         commodities_slippage=config.commodities_slippage,
@@ -488,9 +484,9 @@ def instantiate_trade(
         entry_price,
         exit_price,
         quantity,
-        config.brokerage_entry_fee,
-        config.brokerage_exit_fee,
-        config.other_charges,
+        candidate["market"],
+        candidate["instrument"],
+        config,
     )
     net_pnl = gross_pnl - costs
     notional = entry_price * quantity
@@ -737,20 +733,10 @@ def write_summary_markdown(
             "",
             "## Cost Model",
             "",
-            f"- **brokerage_calculated**: {base.fixed_trade_cost(config) > 0}",
-            f"- **slippage_calculated**: {base.any_slippage_enabled(config)}",
-            f"- **brokerage_entry_fee**: {config.brokerage_entry_fee}",
-            f"- **brokerage_exit_fee**: {config.brokerage_exit_fee}",
-            f"- **other_charges**: {config.other_charges}",
-            f"- **fixed_cost_per_trade**: {base.fixed_trade_cost(config)}",
-            f"- **equity_slippage**: {config.equity_slippage}",
-            f"- **derivatives_slippage**: {config.derivatives_slippage}",
-            f"- **commodities_slippage**: {config.commodities_slippage}",
-            "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
-            if not base.costs_enabled(config)
-            else "- **pnl_basis**: Net P&L after fixed brokerage/charges and fixed slippage",
         ]
     )
+    for key, value in base.cost_model_summary(config).items():
+        lines.append(f"- **{key}**: {value}")
 
     lines.extend(
         [
@@ -816,15 +802,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--risk-reward", type=float, default=2.0)
     parser.add_argument("--target-pct", type=float, default=0.75)
     parser.add_argument("--trailing-stop-pct", type=float, default=0.0)
-    parser.add_argument("--capital", type=float, default=100000.0)
+    parser.add_argument("--capital", type=float, default=1000000.0)
     parser.add_argument("--risk-per-trade-pct", type=float, default=1.0)
     parser.add_argument("--max-allocation-pct", type=float, default=100.0)
     parser.add_argument("--min-first-candle-volume", type=float, default=0.0)
     parser.add_argument("--min-average-volume", type=float, default=0.0)
     parser.add_argument("--max-gap-pct", type=float, default=0.0)
-    parser.add_argument("--brokerage-entry-fee", type=float, default=20.0)
-    parser.add_argument("--brokerage-exit-fee", type=float, default=20.0)
-    parser.add_argument("--other-charges", type=float, default=10.0)
+    parser.add_argument(
+        "--cost-multiplier",
+        type=float,
+        default=1.0,
+        help="1 uses brokerage.md calculator charges; 0 disables all charges.",
+    )
     parser.add_argument("--equity-slippage", type=float, default=0.2)
     parser.add_argument("--derivatives-slippage", type=float, default=5.0)
     parser.add_argument("--commodities-slippage", type=float, default=0.2)
@@ -863,9 +852,7 @@ def config_from_args(args: argparse.Namespace) -> PositionSizingConfig:
         min_first_candle_volume=args.min_first_candle_volume,
         min_average_volume=args.min_average_volume,
         max_gap_pct=args.max_gap_pct,
-        brokerage_entry_fee=args.brokerage_entry_fee,
-        brokerage_exit_fee=args.brokerage_exit_fee,
-        other_charges=args.other_charges,
+        cost_multiplier=args.cost_multiplier,
         equity_slippage=args.equity_slippage,
         derivatives_slippage=args.derivatives_slippage,
         commodities_slippage=args.commodities_slippage,

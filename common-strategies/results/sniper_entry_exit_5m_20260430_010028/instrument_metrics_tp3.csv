@@ -1,0 +1,6 @@
+market,instrument,trades,wins,losses,win_rate_pct,net_pnl,avg_pnl,best_trade,worst_trade,profit_factor
+derivatives,CNXAUTO,43,15,28,34.88,-4976.75,-115.74,9963.19,-6160.04,0.9362
+derivatives,CNXFMCG,57,11,46,19.3,-57417.18,-1007.32,8398.25,-5165.53,0.4467
+derivatives,CNXIT,54,18,36,33.33,-99.57,-1.84,15834.29,-4952.7,0.999
+derivatives,NSEBANK,51,13,38,25.49,-36111.28,-708.06,6839.31,-5647.73,0.5856
+derivatives,NSEI,50,14,36,28.0,-32171.48,-643.43,7583.34,-4915.1,0.6035

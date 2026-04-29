@@ -1,0 +1,4 @@
+market,trades,wins,losses,win_rate_pct,net_pnl,avg_pnl,best_trade,worst_trade,profit_factor
+commodities,45,0,45,0.0,-790735.01,-17571.89,-594.65,-26581.62,0.0
+derivatives,43,13,30,30.23,-42129.25,-979.75,9236.24,-5649.64,0.5475
+equity,91,34,57,37.36,-50905.78,-559.4,13217.34,-9342.73,0.7906

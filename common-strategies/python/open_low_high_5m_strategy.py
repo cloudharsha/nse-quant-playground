@@ -25,6 +25,51 @@ from typing import Any
 
 REQUIRED_COLUMNS = ("Date", "Open", "High", "Low", "Close", "Volume")
 MARKETS = ("equity", "derivatives", "commodities")
+REFERENCE_LEG_NOTIONAL = 1_000_000.0
+GST_RATE = 0.18
+
+CHARGE_MODELS: dict[str, dict[str, Any]] = {
+    "intraday_equity": {
+        "label": "Intraday equity NSE",
+        "brokerage_rate": 0.0003,
+        "brokerage_cap_per_order": 20.0,
+        "tax_name": "stt",
+        "tax_sell_rate": 250.0 / REFERENCE_LEG_NOTIONAL,
+        "exchange_rate": 61.40 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "sebi_rate": 2.0 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "stamp_buy_rate": 30.0 / REFERENCE_LEG_NOTIONAL,
+    },
+    "futures": {
+        "label": "F&O futures NSE",
+        "brokerage_rate": 0.0003,
+        "brokerage_cap_per_order": 20.0,
+        "tax_name": "stt",
+        "tax_sell_rate": 500.0 / REFERENCE_LEG_NOTIONAL,
+        "exchange_rate": 36.60 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "sebi_rate": 2.0 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "stamp_buy_rate": 20.0 / REFERENCE_LEG_NOTIONAL,
+    },
+    "options": {
+        "label": "F&O options NSE",
+        "brokerage_rate": 0.0003,
+        "brokerage_cap_per_order": 20.0,
+        "tax_name": "stt",
+        "tax_sell_rate": 1500.0 / REFERENCE_LEG_NOTIONAL,
+        "exchange_rate": 710.60 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "sebi_rate": 2.0 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "stamp_buy_rate": 30.0 / REFERENCE_LEG_NOTIONAL,
+    },
+    "commodity_futures": {
+        "label": "Commodity futures MCX",
+        "brokerage_rate": 0.0003,
+        "brokerage_cap_per_order": 20.0,
+        "tax_name": "ctt",
+        "tax_sell_rate": 10000.0 / REFERENCE_LEG_NOTIONAL,
+        "exchange_rate": 4200.0 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "sebi_rate": 200.0 / (REFERENCE_LEG_NOTIONAL * 2.0),
+        "stamp_buy_rate": 2000.0 / REFERENCE_LEG_NOTIONAL,
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -41,9 +86,7 @@ class StrategyConfig:
     min_first_candle_volume: float
     min_average_volume: float
     max_gap_pct: float
-    brokerage_entry_fee: float
-    brokerage_exit_fee: float
-    other_charges: float
+    cost_multiplier: float
     equity_slippage: float
     derivatives_slippage: float
     commodities_slippage: float
@@ -214,25 +257,100 @@ def slippage_points_for_market(market: str, instrument: str, config: Any) -> flo
     return float(config.equity_slippage)
 
 
+def charge_segment_for_market(market: str, instrument: str) -> str:
+    market_name = market.lower()
+    instrument_name = instrument.upper()
+
+    if market_name == "commodities":
+        return "commodity_futures"
+    if market_name == "derivatives":
+        return "futures"
+    if "OPT" in instrument_name or "OPTION" in instrument_name:
+        return "options"
+    return "intraday_equity"
+
+
+def brokerage_for_leg(notional: float, model: dict[str, Any]) -> float:
+    if notional <= 0:
+        return 0.0
+    rate_cost = notional * float(model["brokerage_rate"])
+    return min(float(model["brokerage_cap_per_order"]), rate_cost)
+
+
+def charge_breakdown_for_segment(
+    entry_notional: float,
+    exit_notional: float,
+    segment: str,
+    multiplier: float = 1.0,
+) -> dict[str, float | str]:
+    model = CHARGE_MODELS[segment]
+    turnover = entry_notional + exit_notional
+    brokerage = brokerage_for_leg(entry_notional, model) + brokerage_for_leg(
+        exit_notional,
+        model,
+    )
+    exchange_charge = turnover * float(model["exchange_rate"])
+    sebi_charges = turnover * float(model["sebi_rate"])
+    tax_value = exit_notional * float(model["tax_sell_rate"])
+    stamp_duty = entry_notional * float(model["stamp_buy_rate"])
+    gst = (brokerage + exchange_charge + sebi_charges) * GST_RATE
+    total = (
+        brokerage
+        + tax_value
+        + exchange_charge
+        + gst
+        + sebi_charges
+        + stamp_duty
+    ) * multiplier
+
+    return {
+        "segment": segment,
+        "segment_label": str(model["label"]),
+        "turnover": round(turnover, 2),
+        "brokerage": round(brokerage * multiplier, 2),
+        str(model["tax_name"]): round(tax_value * multiplier, 2),
+        "exchange_charge": round(exchange_charge * multiplier, 2),
+        "gst": round(gst * multiplier, 2),
+        "sebi_charges": round(sebi_charges * multiplier, 2),
+        "stamp_duty": round(stamp_duty * multiplier, 2),
+        "total": round(total, 2),
+    }
+
+
 def brokerage_cost(
     entry_price: float,
     exit_price: float,
     quantity: int,
-    brokerage_entry_fee: float,
-    brokerage_exit_fee: float,
-    other_charges: float,
+    market: str,
+    instrument: str,
+    config: Any,
 ) -> float:
-    if quantity <= 0:
+    if quantity <= 0 or float(config.cost_multiplier) <= 0:
         return 0.0
-    return brokerage_entry_fee + brokerage_exit_fee + other_charges
 
-
-def fixed_trade_cost(config: Any) -> float:
-    return (
-        float(config.brokerage_entry_fee)
-        + float(config.brokerage_exit_fee)
-        + float(config.other_charges)
+    entry_notional = abs(entry_price) * quantity
+    exit_notional = abs(exit_price) * quantity
+    segment = charge_segment_for_market(market, instrument)
+    breakdown = charge_breakdown_for_segment(
+        entry_notional,
+        exit_notional,
+        segment,
+        float(config.cost_multiplier),
     )
+    return float(breakdown["total"])
+
+
+def reference_charge_total(segment: str) -> float:
+    breakdown = charge_breakdown_for_segment(
+        REFERENCE_LEG_NOTIONAL,
+        REFERENCE_LEG_NOTIONAL,
+        segment,
+    )
+    return float(breakdown["total"])
+
+
+def brokerage_costs_enabled(config: Any) -> bool:
+    return float(config.cost_multiplier) > 0
 
 
 def any_slippage_enabled(config: Any) -> bool:
@@ -247,7 +365,32 @@ def any_slippage_enabled(config: Any) -> bool:
 
 
 def costs_enabled(config: Any) -> bool:
-    return fixed_trade_cost(config) > 0 or any_slippage_enabled(config)
+    return brokerage_costs_enabled(config) or any_slippage_enabled(config)
+
+
+def cost_model_summary(config: Any) -> dict[str, Any]:
+    return {
+        "brokerage_calculated": brokerage_costs_enabled(config),
+        "slippage_calculated": any_slippage_enabled(config),
+        "cost_model": "Segment-wise brokerage calculator rates from brokerage.md",
+        "cost_multiplier": config.cost_multiplier,
+        "reference_buy_value": REFERENCE_LEG_NOTIONAL,
+        "reference_sell_value": REFERENCE_LEG_NOTIONAL,
+        "intraday_equity_reference_total_charges": reference_charge_total(
+            "intraday_equity"
+        ),
+        "futures_reference_total_charges": reference_charge_total("futures"),
+        "options_reference_total_charges": reference_charge_total("options"),
+        "commodity_futures_reference_total_charges": reference_charge_total(
+            "commodity_futures"
+        ),
+        "equity_slippage": config.equity_slippage,
+        "derivatives_slippage": config.derivatives_slippage,
+        "commodities_slippage": config.commodities_slippage,
+        "pnl_basis": "Gross P&L; brokerage and slippage disabled"
+        if not costs_enabled(config)
+        else "Net P&L after segment-wise brokerage/charges and fixed slippage",
+    }
 
 
 def fixed_target_price(
@@ -426,9 +569,9 @@ def build_trade(
         entry_price,
         exit_price,
         quantity,
-        config.brokerage_entry_fee,
-        config.brokerage_exit_fee,
-        config.other_charges,
+        market,
+        instrument,
+        config,
     )
     net_pnl = gross_pnl - costs
     risk_amount = max(stop_distance * quantity, 0.0)
@@ -773,7 +916,7 @@ def build_summary(
     pf = profit_factor(trades)
     sharpe = sharpe_ratio(datewise_rows)
 
-    return {
+    summary = {
         "strategy": "Open = Low / Open = High Strategy (5-min timeframe)",
         "starting_capital": round(config.capital, 2),
         "ending_equity": round(equity_values[-1], 2) if equity_values else round(config.capital, 2),
@@ -794,20 +937,10 @@ def build_summary(
         "files_tested": len(file_stats),
         "sessions_tested": sum(int(item["sessions"]) for item in file_stats),
         "candles_tested": sum(int(item["candles"]) for item in file_stats),
-        "brokerage_calculated": fixed_trade_cost(config) > 0,
-        "slippage_calculated": any_slippage_enabled(config),
-        "brokerage_entry_fee": config.brokerage_entry_fee,
-        "brokerage_exit_fee": config.brokerage_exit_fee,
-        "other_charges": config.other_charges,
-        "fixed_cost_per_trade": fixed_trade_cost(config),
-        "equity_slippage": config.equity_slippage,
-        "derivatives_slippage": config.derivatives_slippage,
-        "commodities_slippage": config.commodities_slippage,
-        "pnl_basis": "Gross P&L; brokerage and slippage disabled"
-        if not costs_enabled(config)
-        else "Net P&L after fixed brokerage/charges and fixed slippage",
         "skip_counts": dict(sorted(skip_counts.items())),
     }
+    summary.update(cost_model_summary(config))
+    return summary
 
 
 def csv_fieldnames(rows: list[dict[str, Any]]) -> list[str]:
@@ -862,20 +995,10 @@ def write_markdown_summary(
             "",
             "## Cost Model",
             "",
-            f"- **brokerage_calculated**: {fixed_trade_cost(config) > 0}",
-            f"- **slippage_calculated**: {any_slippage_enabled(config)}",
-            f"- **brokerage_entry_fee**: {config.brokerage_entry_fee}",
-            f"- **brokerage_exit_fee**: {config.brokerage_exit_fee}",
-            f"- **other_charges**: {config.other_charges}",
-            f"- **fixed_cost_per_trade**: {fixed_trade_cost(config)}",
-            f"- **equity_slippage**: {config.equity_slippage}",
-            f"- **derivatives_slippage**: {config.derivatives_slippage}",
-            f"- **commodities_slippage**: {config.commodities_slippage}",
-            "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
-            if not costs_enabled(config)
-            else "- **pnl_basis**: Net P&L after fixed brokerage/charges and fixed slippage",
         ]
     )
+    for key, value in cost_model_summary(config).items():
+        lines.append(f"- **{key}**: {value}")
 
     lines.extend(["", "## Skip Counts", ""])
     for key, value in summary["skip_counts"].items():
@@ -945,7 +1068,7 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Set above 0 to trail stop after each completed candle close.",
     )
-    parser.add_argument("--capital", type=float, default=100000.0)
+    parser.add_argument("--capital", type=float, default=1000000.0)
     parser.add_argument("--risk-per-trade-pct", type=float, default=1.0)
     parser.add_argument("--max-allocation-pct", type=float, default=100.0)
     parser.add_argument("--min-first-candle-volume", type=float, default=0.0)
@@ -956,9 +1079,12 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="0 disables the gap filter.",
     )
-    parser.add_argument("--brokerage-entry-fee", type=float, default=20.0)
-    parser.add_argument("--brokerage-exit-fee", type=float, default=20.0)
-    parser.add_argument("--other-charges", type=float, default=10.0)
+    parser.add_argument(
+        "--cost-multiplier",
+        type=float,
+        default=1.0,
+        help="1 uses brokerage.md calculator charges; 0 disables all charges.",
+    )
     parser.add_argument("--equity-slippage", type=float, default=0.2)
     parser.add_argument("--derivatives-slippage", type=float, default=5.0)
     parser.add_argument("--commodities-slippage", type=float, default=0.2)
@@ -994,9 +1120,7 @@ def config_from_args(args: argparse.Namespace) -> StrategyConfig:
         min_first_candle_volume=args.min_first_candle_volume,
         min_average_volume=args.min_average_volume,
         max_gap_pct=args.max_gap_pct,
-        brokerage_entry_fee=args.brokerage_entry_fee,
-        brokerage_exit_fee=args.brokerage_exit_fee,
-        other_charges=args.other_charges,
+        cost_multiplier=args.cost_multiplier,
         equity_slippage=args.equity_slippage,
         derivatives_slippage=args.derivatives_slippage,
         commodities_slippage=args.commodities_slippage,

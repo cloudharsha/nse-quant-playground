@@ -65,9 +65,7 @@ class SMCConfig:
     capital: float
     risk_per_trade_pct: float
     max_allocation_pct: float
-    brokerage_entry_fee: float
-    brokerage_exit_fee: float
-    other_charges: float
+    cost_multiplier: float
     equity_slippage: float
     derivatives_slippage: float
     commodities_slippage: float
@@ -227,7 +225,7 @@ def order_block_from_range(
             key=lambda item: float(item[1]["PARSED_HIGH"]),
         )
 
-    return {
+    summary = {
         "index": parsed_index,
         "time": candle["dt"].isoformat(),
         "high": float(candle["PARSED_HIGH"]),
@@ -444,9 +442,9 @@ def close_trade(
         entry_price,
         exit_price,
         quantity,
-        config.brokerage_entry_fee,
-        config.brokerage_exit_fee,
-        config.other_charges,
+        trade["market"],
+        trade["instrument"],
+        config,
     )
     net_pnl = gross_pnl - costs
     risk_amount = float(trade["position_risk_amount"])
@@ -821,20 +819,10 @@ def build_summary(
         "traded_instruments": ",".join(
             sorted({f"{item['market']}:{item['instrument']}:5m" for item in file_stats})
         ),
-        "brokerage_calculated": base.fixed_trade_cost(config) > 0,
-        "slippage_calculated": base.any_slippage_enabled(config),
-        "brokerage_entry_fee": config.brokerage_entry_fee,
-        "brokerage_exit_fee": config.brokerage_exit_fee,
-        "other_charges": config.other_charges,
-        "fixed_cost_per_trade": base.fixed_trade_cost(config),
-        "equity_slippage": config.equity_slippage,
-        "derivatives_slippage": config.derivatives_slippage,
-        "commodities_slippage": config.commodities_slippage,
-        "pnl_basis": "Gross P&L; brokerage and slippage disabled"
-        if not base.costs_enabled(config)
-        else "Net P&L after fixed brokerage/charges and fixed slippage",
         "skip_counts": dict(sorted(skip_counts.items())),
     }
+    summary.update(base.cost_model_summary(config))
+    return summary
 
 
 def comparison_row(summary: dict[str, Any]) -> dict[str, Any]:
@@ -892,16 +880,13 @@ def write_summary_markdown(
             "",
             "## Cost Model",
             "",
-            f"- **brokerage_calculated**: {base.fixed_trade_cost(config) > 0}",
-            f"- **slippage_calculated**: {base.any_slippage_enabled(config)}",
-            f"- **brokerage_entry_fee**: {config.brokerage_entry_fee}",
-            f"- **brokerage_exit_fee**: {config.brokerage_exit_fee}",
-            f"- **other_charges**: {config.other_charges}",
-            f"- **fixed_cost_per_trade**: {base.fixed_trade_cost(config)}",
-            f"- **equity_slippage**: {config.equity_slippage}",
-            f"- **derivatives_slippage**: {config.derivatives_slippage}",
-            f"- **commodities_slippage**: {config.commodities_slippage}",
-            f"- **pnl_basis**: {first_summary.get('pnl_basis', '')}",
+        ]
+    )
+    for key, value in base.cost_model_summary(config).items():
+        lines.append(f"- **{key}**: {value}")
+
+    lines.extend(
+        [
             "",
             "## Backtest Rules",
             "",
@@ -975,12 +960,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--atr-multiplier", type=float, default=1.5)
     parser.add_argument("--stop-buffer-pct", type=float, default=0.02)
     parser.add_argument("--risk-reward", type=float, default=2.0)
-    parser.add_argument("--capital", type=float, default=100000.0)
+    parser.add_argument("--capital", type=float, default=1000000.0)
     parser.add_argument("--risk-per-trade-pct", type=float, default=1.0)
     parser.add_argument("--max-allocation-pct", type=float, default=100.0)
-    parser.add_argument("--brokerage-entry-fee", type=float, default=20.0)
-    parser.add_argument("--brokerage-exit-fee", type=float, default=20.0)
-    parser.add_argument("--other-charges", type=float, default=10.0)
+    parser.add_argument(
+        "--cost-multiplier",
+        type=float,
+        default=1.0,
+        help="1 uses brokerage.md calculator charges; 0 disables all charges.",
+    )
     parser.add_argument("--equity-slippage", type=float, default=0.2)
     parser.add_argument("--derivatives-slippage", type=float, default=5.0)
     parser.add_argument("--commodities-slippage", type=float, default=0.2)
@@ -1016,9 +1004,7 @@ def config_from_args(args: argparse.Namespace) -> SMCConfig:
         capital=args.capital,
         risk_per_trade_pct=args.risk_per_trade_pct,
         max_allocation_pct=args.max_allocation_pct,
-        brokerage_entry_fee=args.brokerage_entry_fee,
-        brokerage_exit_fee=args.brokerage_exit_fee,
-        other_charges=args.other_charges,
+        cost_multiplier=args.cost_multiplier,
         equity_slippage=args.equity_slippage,
         derivatives_slippage=args.derivatives_slippage,
         commodities_slippage=args.commodities_slippage,

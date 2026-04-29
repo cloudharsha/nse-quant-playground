@@ -1,4 +1,0 @@
-variant,events_tested,total_trades,win_rate_pct,net_pnl,ending_equity,total_costs,max_drawdown,max_drawdown_pct,profit_factor,sharpe_ratio
-internal_all,1334,830,32.65,-136555.64,-36555.64,41500.0,-145699.76,-145.6998,0.5006,2.4956
-swing_all,182,167,34.73,-26259.24,73740.76,8350.0,-28844.63,-28.8446,0.4434,-8.0272
-combined_all,1516,846,32.62,-139259.95,-39259.95,42300.0,-147402.72,-147.4027,0.4954,0.7828

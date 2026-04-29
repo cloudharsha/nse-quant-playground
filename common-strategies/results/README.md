@@ -11,8 +11,8 @@ Every `summary.md` should include:
 - **Strategy name**: the strategy and variant tested.
 - **Testing scope**: markets tested (`commodities`, `derivatives`, `equity`),
   timeframe, number of files, sessions, candles, and trades where available.
-- **Cost model**: whether fixed brokerage/charges and fixed slippage were
-  included, with the exact rupee values used.
+- **Cost model**: whether segment-wise brokerage/charges and fixed slippage were
+  included, with the exact reference values used.
 - **Backtest rules**: signal, entry, stop-loss, target, and exit assumptions.
 - **Headline metrics**: trades, win rate, net P&L, ending equity, max drawdown,
   profit factor, and Sharpe ratio when possible.
@@ -28,13 +28,18 @@ Every `summary.md` should include:
 
 ## Cost Model
 
-Brokerage and other charges are fixed per completed trade unless explicitly set
-to zero. Do not change these defaults unless the brokerage model itself changes:
+Brokerage and statutory charges are calculated from the segment-wise reference
+values in `../../brokerage.md`. The default starting capital is:
 
-- `brokerage_entry_fee`: `20.0`
-- `brokerage_exit_fee`: `20.0`
-- `other_charges`: `10.0`
-- `fixed_cost_per_trade`: `50.0`
+- `capital`: `1000000.0`
+- `cost_multiplier`: `1.0`
+
+Reference calculator charges for Rs. 10,00,000 buy and Rs. 10,00,000 sell:
+
+- `intraday_equity_reference_total_charges`: `402.01`
+- `futures_reference_total_charges`: `612.75`
+- `options_reference_total_charges`: `2418.07`
+- `commodity_futures_reference_total_charges`: `17239.20`
 
 Slippage is a fixed price-point adjustment, not a percentage:
 
@@ -49,9 +54,9 @@ For each closed trade, the scripts calculate:
 
 - entry slippage
 - exit slippage
-- fixed brokerage/charges
+- brokerage and statutory charges based on market segment
 - gross P&L before costs
 - net P&L after costs
 
 The headline P&L, equity curve, drawdown, profit factor, and Sharpe ratio are
-based on **net P&L after fixed brokerage/charges and fixed slippage**.
+based on **net P&L after segment-wise brokerage/charges and fixed slippage**.

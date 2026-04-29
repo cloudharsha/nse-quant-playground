@@ -173,43 +173,46 @@ def main():
     ]
 
     period = '1mo'  # 1 month (30 days - try shorter period due to API limitations)
-    interval = '5m'  # 5-minute candles (can be '2m', '5m', '15m', '30m')
+    intervals = ['5m', '15m', '30m', '1h']  # Multiple timeframes
     output_dir = '/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/equity/data'
 
     print("=" * 60)
     print("NSE Intraday Equity Data Collection")
     print("=" * 60)
     print(f"Period: {period} (30 days - testing shorter period due to API limitations)")
-    print(f"Interval: {interval}")
+    print(f"Intervals: {', '.join(intervals)}")
     print(f"Output directory: {output_dir}")
     print(f"Number of stocks: {len(ticker_symbols)}")
     print("=" * 60)
     print("Note: Yahoo Finance limits intraday data to maximum 60 days")
     print("=" * 60)
 
-    # Fetch data for each stock
+    # Fetch data for each stock and each interval
     for ticker in ticker_symbols:
         print(f"\n{'=' * 60}")
         print(f"Processing: {ticker}")
         print('=' * 60)
 
-        try:
-            # Fetch intraday data
-            data = get_extended_intraday_data(ticker, period=period, interval=interval)
+        for interval in intervals:
+            print(f"\n--- Fetching {interval} data ---")
 
-            # Add technical indicators
-            if data is not None and not data.empty:
-                data = add_technical_indicators(data)
+            try:
+                # Fetch intraday data
+                data = get_extended_intraday_data(ticker, period=period, interval=interval)
 
-                # Save to CSV
-                save_to_csv(data, ticker, interval, output_dir)
-                print(f"✓ Successfully processed {ticker}")
-            else:
-                print(f"✗ Failed to fetch data for {ticker}")
+                # Add technical indicators
+                if data is not None and not data.empty:
+                    data = add_technical_indicators(data)
 
-        except Exception as e:
-            print(f"✗ Error processing {ticker}: {str(e)}")
-            continue
+                    # Save to CSV
+                    save_to_csv(data, ticker, interval, output_dir)
+                    print(f"✓ Successfully processed {ticker} at {interval}")
+                else:
+                    print(f"✗ Failed to fetch data for {ticker} at {interval}")
+
+            except Exception as e:
+                print(f"✗ Error processing {ticker} at {interval}: {str(e)}")
+                continue
 
     print("\n" + "=" * 60)
     print("Intraday data collection completed!")

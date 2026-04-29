@@ -8,9 +8,7 @@ This runner executes both variants:
 
 It forces:
 
-- brokerage_entry_fee = 0
-- brokerage_exit_fee = 0
-- other_charges = 0
+- cost_multiplier = 0
 - equity_slippage = 0
 - derivatives_slippage = 0
 - commodities_slippage = 0
@@ -29,9 +27,7 @@ import sniper_entry_exit_5m_strategy as sniper
 
 
 FORCED_OPTIONS = {
-    "--brokerage-entry-fee",
-    "--brokerage-exit-fee",
-    "--other-charges",
+    "--cost-multiplier",
     "--equity-slippage",
     "--derivatives-slippage",
     "--commodities-slippage",
@@ -80,11 +76,7 @@ def run_sniper(mode: str, pass_through_args: list[str], timestamp: str, run_pref
     argv = [
         "sniper_entry_exit_5m_strategy.py",
         *pass_through_args,
-        "--brokerage-entry-fee",
-        "0",
-        "--brokerage-exit-fee",
-        "0",
-        "--other-charges",
+        "--cost-multiplier",
         "0",
         "--equity-slippage",
         "0",
