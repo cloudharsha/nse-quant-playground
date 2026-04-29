@@ -41,8 +41,12 @@ class StrategyConfig:
     min_first_candle_volume: float
     min_average_volume: float
     max_gap_pct: float
-    brokerage_bps: float
-    slippage_bps: float
+    brokerage_entry_fee: float
+    brokerage_exit_fee: float
+    other_charges: float
+    equity_slippage: float
+    derivatives_slippage: float
+    commodities_slippage: float
     session_start: time | None
     exit_time: time | None
     require_session_open: bool
@@ -87,10 +91,6 @@ def safe_float(value: Any, default: float = 0.0) -> float:
 
 def pct_to_decimal(value: float) -> float:
     return value / 100.0
-
-
-def bps_to_decimal(value: float) -> float:
-    return value / 10000.0
 
 
 def format_pct(value: float | None) -> str:
@@ -189,28 +189,65 @@ def is_open_high(first: dict[str, Any], tolerance_pct: float) -> bool:
     return abs(first["High"] - first["Open"]) / first["Open"] <= tolerance
 
 
-def apply_entry_slippage(price: float, direction: str, slippage_bps: float) -> float:
-    slippage = bps_to_decimal(slippage_bps)
+def apply_entry_slippage(price: float, direction: str, slippage_points: float) -> float:
     if direction == "LONG":
-        return price * (1.0 + slippage)
-    return price * (1.0 - slippage)
+        return price + slippage_points
+    return max(0.0, price - slippage_points)
 
 
-def apply_exit_slippage(price: float, direction: str, slippage_bps: float) -> float:
-    slippage = bps_to_decimal(slippage_bps)
+def apply_exit_slippage(price: float, direction: str, slippage_points: float) -> float:
     if direction == "LONG":
-        return price * (1.0 - slippage)
-    return price * (1.0 + slippage)
+        return max(0.0, price - slippage_points)
+    return price + slippage_points
+
+
+def slippage_points_for_market(market: str, instrument: str, config: Any) -> float:
+    market_name = market.lower()
+    instrument_name = instrument.upper()
+
+    if market_name == "derivatives":
+        return float(config.derivatives_slippage)
+    if market_name == "commodities":
+        return float(config.commodities_slippage)
+    if any(marker in instrument_name for marker in ("NIFTY", "NSEI", "NSEBANK", "CNX")):
+        return float(config.derivatives_slippage)
+    return float(config.equity_slippage)
 
 
 def brokerage_cost(
     entry_price: float,
     exit_price: float,
     quantity: int,
-    brokerage_bps: float,
+    brokerage_entry_fee: float,
+    brokerage_exit_fee: float,
+    other_charges: float,
 ) -> float:
-    turnover = (abs(entry_price) + abs(exit_price)) * quantity
-    return turnover * bps_to_decimal(brokerage_bps)
+    if quantity <= 0:
+        return 0.0
+    return brokerage_entry_fee + brokerage_exit_fee + other_charges
+
+
+def fixed_trade_cost(config: Any) -> float:
+    return (
+        float(config.brokerage_entry_fee)
+        + float(config.brokerage_exit_fee)
+        + float(config.other_charges)
+    )
+
+
+def any_slippage_enabled(config: Any) -> bool:
+    return any(
+        value > 0
+        for value in (
+            float(config.equity_slippage),
+            float(config.derivatives_slippage),
+            float(config.commodities_slippage),
+        )
+    )
+
+
+def costs_enabled(config: Any) -> bool:
+    return fixed_trade_cost(config) > 0 or any_slippage_enabled(config)
 
 
 def fixed_target_price(
@@ -241,8 +278,9 @@ def position_size(
     entry_price: float,
     stop_price: float,
     config: StrategyConfig,
+    slippage_points: float,
 ) -> int:
-    stop_fill = apply_exit_slippage(stop_price, direction, config.slippage_bps)
+    stop_fill = apply_exit_slippage(stop_price, direction, slippage_points)
     risk_per_unit = abs(entry_price - stop_fill)
     if risk_per_unit <= 0:
         return 0
@@ -278,6 +316,7 @@ def exit_trade(
     initial_stop: float,
     target_price: float | None,
     config: StrategyConfig,
+    slippage_points: float,
 ) -> tuple[str, dict[str, Any], float]:
     active_stop = initial_stop
     exit_reason = "END_OF_DAY"
@@ -324,7 +363,7 @@ def exit_trade(
     return exit_reason, exit_candle, apply_exit_slippage(
         raw_exit_price,
         direction,
-        config.slippage_bps,
+        slippage_points,
     )
 
 
@@ -344,14 +383,15 @@ def build_trade(
     first = session[0]
     signal = session[signal_index]
     entry_candle = session[entry_index]
-    entry_price = apply_entry_slippage(entry_candle["Open"], direction, config.slippage_bps)
+    slippage_points = slippage_points_for_market(market, instrument, config)
+    entry_price = apply_entry_slippage(entry_candle["Open"], direction, slippage_points)
 
     if direction == "LONG" and entry_price <= stop_price:
         return None
     if direction == "SHORT" and entry_price >= stop_price:
         return None
 
-    quantity = position_size(direction, entry_price, stop_price, config)
+    quantity = position_size(direction, entry_price, stop_price, config, slippage_points)
     if quantity <= 0:
         return None
 
@@ -364,6 +404,7 @@ def build_trade(
         initial_stop=stop_price,
         target_price=target_price,
         config=config,
+        slippage_points=slippage_points,
     )
 
     if direction == "LONG":
@@ -371,17 +412,24 @@ def build_trade(
         stop_distance = entry_price - apply_exit_slippage(
             stop_price,
             direction,
-            config.slippage_bps,
+            slippage_points,
         )
     else:
         gross_pnl = (entry_price - exit_price) * quantity
         stop_distance = apply_exit_slippage(
             stop_price,
             direction,
-            config.slippage_bps,
+            slippage_points,
         ) - entry_price
 
-    costs = brokerage_cost(entry_price, exit_price, quantity, config.brokerage_bps)
+    costs = brokerage_cost(
+        entry_price,
+        exit_price,
+        quantity,
+        config.brokerage_entry_fee,
+        config.brokerage_exit_fee,
+        config.other_charges,
+    )
     net_pnl = gross_pnl - costs
     risk_amount = max(stop_distance * quantity, 0.0)
     r_multiple = net_pnl / risk_amount if risk_amount > 0 else 0.0
@@ -411,6 +459,7 @@ def build_trade(
         "exit_reason": exit_reason,
         "quantity": quantity,
         "notional": round(notional, 2),
+        "slippage_points": round(slippage_points, 6),
         "gross_pnl": round(gross_pnl, 2),
         "costs": round(costs, 2),
         "net_pnl": round(net_pnl, 2),
@@ -717,6 +766,7 @@ def build_summary(
     net_values = [float(trade["net_pnl"]) for trade in trades]
     wins = [value for value in net_values if value > 0]
     losses = [value for value in net_values if value <= 0]
+    total_costs = sum(float(trade.get("costs", 0.0)) for trade in trades)
 
     equity_values = [config.capital] + [float(row["equity"]) for row in equity_rows]
     max_dd, max_dd_pct = max_drawdown_from_equity(equity_values)
@@ -729,6 +779,7 @@ def build_summary(
         "ending_equity": round(equity_values[-1], 2) if equity_values else round(config.capital, 2),
         "net_pnl": round(sum(net_values), 2),
         "total_trades": len(trades),
+        "total_costs": round(total_costs, 2),
         "wins": len(wins),
         "losses": len(losses),
         "win_rate_pct": round((len(wins) / len(trades)) * 100.0, 2) if trades else 0.0,
@@ -743,13 +794,18 @@ def build_summary(
         "files_tested": len(file_stats),
         "sessions_tested": sum(int(item["sessions"]) for item in file_stats),
         "candles_tested": sum(int(item["candles"]) for item in file_stats),
-        "brokerage_calculated": config.brokerage_bps > 0,
-        "slippage_calculated": config.slippage_bps > 0,
-        "brokerage_bps": config.brokerage_bps,
-        "slippage_bps": config.slippage_bps,
+        "brokerage_calculated": fixed_trade_cost(config) > 0,
+        "slippage_calculated": any_slippage_enabled(config),
+        "brokerage_entry_fee": config.brokerage_entry_fee,
+        "brokerage_exit_fee": config.brokerage_exit_fee,
+        "other_charges": config.other_charges,
+        "fixed_cost_per_trade": fixed_trade_cost(config),
+        "equity_slippage": config.equity_slippage,
+        "derivatives_slippage": config.derivatives_slippage,
+        "commodities_slippage": config.commodities_slippage,
         "pnl_basis": "Gross P&L; brokerage and slippage disabled"
-        if config.brokerage_bps == 0 and config.slippage_bps == 0
-        else "Net P&L after brokerage and slippage",
+        if not costs_enabled(config)
+        else "Net P&L after fixed brokerage/charges and fixed slippage",
         "skip_counts": dict(sorted(skip_counts.items())),
     }
 
@@ -806,13 +862,18 @@ def write_markdown_summary(
             "",
             "## Cost Model",
             "",
-            f"- **brokerage_calculated**: {config.brokerage_bps > 0}",
-            f"- **slippage_calculated**: {config.slippage_bps > 0}",
-            f"- **brokerage_bps**: {config.brokerage_bps}",
-            f"- **slippage_bps**: {config.slippage_bps}",
+            f"- **brokerage_calculated**: {fixed_trade_cost(config) > 0}",
+            f"- **slippage_calculated**: {any_slippage_enabled(config)}",
+            f"- **brokerage_entry_fee**: {config.brokerage_entry_fee}",
+            f"- **brokerage_exit_fee**: {config.brokerage_exit_fee}",
+            f"- **other_charges**: {config.other_charges}",
+            f"- **fixed_cost_per_trade**: {fixed_trade_cost(config)}",
+            f"- **equity_slippage**: {config.equity_slippage}",
+            f"- **derivatives_slippage**: {config.derivatives_slippage}",
+            f"- **commodities_slippage**: {config.commodities_slippage}",
             "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
-            if config.brokerage_bps == 0 and config.slippage_bps == 0
-            else "- **pnl_basis**: Net P&L after brokerage and slippage",
+            if not costs_enabled(config)
+            else "- **pnl_basis**: Net P&L after fixed brokerage/charges and fixed slippage",
         ]
     )
 
@@ -895,8 +956,12 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="0 disables the gap filter.",
     )
-    parser.add_argument("--brokerage-bps", type=float, default=3.0)
-    parser.add_argument("--slippage-bps", type=float, default=2.0)
+    parser.add_argument("--brokerage-entry-fee", type=float, default=20.0)
+    parser.add_argument("--brokerage-exit-fee", type=float, default=20.0)
+    parser.add_argument("--other-charges", type=float, default=10.0)
+    parser.add_argument("--equity-slippage", type=float, default=0.2)
+    parser.add_argument("--derivatives-slippage", type=float, default=5.0)
+    parser.add_argument("--commodities-slippage", type=float, default=0.2)
     parser.add_argument("--session-start", type=parse_clock, default=parse_clock("09:15"))
     parser.add_argument("--exit-time", type=parse_clock, default=parse_clock("15:20"))
     parser.add_argument(
@@ -929,8 +994,12 @@ def config_from_args(args: argparse.Namespace) -> StrategyConfig:
         min_first_candle_volume=args.min_first_candle_volume,
         min_average_volume=args.min_average_volume,
         max_gap_pct=args.max_gap_pct,
-        brokerage_bps=args.brokerage_bps,
-        slippage_bps=args.slippage_bps,
+        brokerage_entry_fee=args.brokerage_entry_fee,
+        brokerage_exit_fee=args.brokerage_exit_fee,
+        other_charges=args.other_charges,
+        equity_slippage=args.equity_slippage,
+        derivatives_slippage=args.derivatives_slippage,
+        commodities_slippage=args.commodities_slippage,
         session_start=args.session_start,
         exit_time=args.exit_time,
         require_session_open=not args.allow_missing_session_open,

@@ -8,8 +8,12 @@ This runner executes both variants:
 
 It forces:
 
-- brokerage_bps = 0
-- slippage_bps = 0
+- brokerage_entry_fee = 0
+- brokerage_exit_fee = 0
+- other_charges = 0
+- equity_slippage = 0
+- derivatives_slippage = 0
+- commodities_slippage = 0
 
 Any cost or run-name arguments passed by mistake are ignored and replaced so
 the outputs remain clearly separated from the charged backtests.
@@ -25,8 +29,12 @@ import sniper_entry_exit_5m_strategy as sniper
 
 
 FORCED_OPTIONS = {
-    "--brokerage-bps",
-    "--slippage-bps",
+    "--brokerage-entry-fee",
+    "--brokerage-exit-fee",
+    "--other-charges",
+    "--equity-slippage",
+    "--derivatives-slippage",
+    "--commodities-slippage",
     "--run-name",
     "--invert-signals",
 }
@@ -72,9 +80,17 @@ def run_sniper(mode: str, pass_through_args: list[str], timestamp: str, run_pref
     argv = [
         "sniper_entry_exit_5m_strategy.py",
         *pass_through_args,
-        "--brokerage-bps",
+        "--brokerage-entry-fee",
         "0",
-        "--slippage-bps",
+        "--brokerage-exit-fee",
+        "0",
+        "--other-charges",
+        "0",
+        "--equity-slippage",
+        "0",
+        "--derivatives-slippage",
+        "0",
+        "--commodities-slippage",
         "0",
         "--run-name",
         run_name,

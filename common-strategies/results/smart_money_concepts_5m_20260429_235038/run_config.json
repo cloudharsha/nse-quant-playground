@@ -1,0 +1,59 @@
+{
+  "markets": [
+    "equity",
+    "derivatives",
+    "commodities"
+  ],
+  "config": {
+    "internal_length": 5,
+    "swing_length": 50,
+    "atr_period": 14,
+    "order_block_atr_period": 200,
+    "atr_multiplier": 1.5,
+    "stop_buffer_pct": 0.02,
+    "risk_reward": 2.0,
+    "capital": 100000.0,
+    "risk_per_trade_pct": 1.0,
+    "max_allocation_pct": 100.0,
+    "brokerage_entry_fee": 20.0,
+    "brokerage_exit_fee": 20.0,
+    "other_charges": 10.0,
+    "equity_slippage": 0.2,
+    "derivatives_slippage": 5.0,
+    "commodities_slippage": 0.2,
+    "session_start": "09:15",
+    "exit_time": "15:20",
+    "require_session_open": true,
+    "exit_at_session_end": true,
+    "ambiguous_policy": "stop_first",
+    "variants": [
+      "internal_all",
+      "swing_all",
+      "combined_all"
+    ],
+    "top_trade_count": 10
+  },
+  "data_files": [
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\commodities\\data\\CLF_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\commodities\\data\\GCF_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\commodities\\data\\HGF_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\commodities\\data\\NGF_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\commodities\\data\\SIF_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\derivatives\\data\\CNXAUTO_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\derivatives\\data\\CNXFMCG_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\derivatives\\data\\CNXIT_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\derivatives\\data\\NSEBANK_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\derivatives\\data\\NSEI_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\BHARTIARTL_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\HDFCBANK_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\ICICIBANK_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\INFY_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\ITC_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\KOTAKBANK_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\LT_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\RELIANCE_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\SBIN_NS_equity_data_5m.csv",
+    "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\equity\\data\\TCS_NS_equity_data_5m.csv"
+  ],
+  "source_pine": "C:\\Users\\harsh\\Desktop\\workspace\\git\\nse-quant-playground\\pine-scripts\\Smart Money Concepts [LuxAlgo].pine"
+}

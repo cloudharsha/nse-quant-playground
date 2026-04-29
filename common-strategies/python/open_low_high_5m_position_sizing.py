@@ -51,8 +51,12 @@ class PositionSizingConfig:
     min_first_candle_volume: float
     min_average_volume: float
     max_gap_pct: float
-    brokerage_bps: float
-    slippage_bps: float
+    brokerage_entry_fee: float
+    brokerage_exit_fee: float
+    other_charges: float
+    equity_slippage: float
+    derivatives_slippage: float
+    commodities_slippage: float
     session_start: time | None
     exit_time: time | None
     require_session_open: bool
@@ -107,8 +111,12 @@ def config_strategy_view(config: PositionSizingConfig) -> base.StrategyConfig:
         min_first_candle_volume=config.min_first_candle_volume,
         min_average_volume=config.min_average_volume,
         max_gap_pct=config.max_gap_pct,
-        brokerage_bps=config.brokerage_bps,
-        slippage_bps=config.slippage_bps,
+        brokerage_entry_fee=config.brokerage_entry_fee,
+        brokerage_exit_fee=config.brokerage_exit_fee,
+        other_charges=config.other_charges,
+        equity_slippage=config.equity_slippage,
+        derivatives_slippage=config.derivatives_slippage,
+        commodities_slippage=config.commodities_slippage,
         session_start=config.session_start,
         exit_time=config.exit_time,
         require_session_open=config.require_session_open,
@@ -134,10 +142,11 @@ def build_candidate(
     first = session[0]
     signal = session[signal_index]
     entry_candle = session[entry_index]
+    slippage_points = base.slippage_points_for_market(market, instrument, strategy_config)
     entry_price = base.apply_entry_slippage(
         entry_candle["Open"],
         direction,
-        strategy_config.slippage_bps,
+        slippage_points,
     )
 
     if direction == "LONG" and entry_price <= stop_price:
@@ -159,12 +168,13 @@ def build_candidate(
         initial_stop=stop_price,
         target_price=target_price,
         config=strategy_config,
+        slippage_points=slippage_points,
     )
 
     stop_fill = base.apply_exit_slippage(
         stop_price,
         direction,
-        strategy_config.slippage_bps,
+        slippage_points,
     )
     if direction == "LONG":
         gross_pnl_per_unit = exit_price - entry_price
@@ -203,6 +213,7 @@ def build_candidate(
         "exit_price": round(exit_price, 6),
         "exit_reason": exit_reason,
         "atr_at_entry": round(atr_at_entry, 6),
+        "slippage_points": round(slippage_points, 6),
         "gross_pnl_per_unit": gross_pnl_per_unit,
         "stop_distance_per_unit": stop_distance,
         "holding_candles": holding_candles,
@@ -473,7 +484,14 @@ def instantiate_trade(
     entry_price = float(candidate["entry_price"])
     exit_price = float(candidate["exit_price"])
     gross_pnl = float(candidate["gross_pnl_per_unit"]) * quantity
-    costs = base.brokerage_cost(entry_price, exit_price, quantity, config.brokerage_bps)
+    costs = base.brokerage_cost(
+        entry_price,
+        exit_price,
+        quantity,
+        config.brokerage_entry_fee,
+        config.brokerage_exit_fee,
+        config.other_charges,
+    )
     net_pnl = gross_pnl - costs
     notional = entry_price * quantity
     risk_amount = float(candidate["stop_distance_per_unit"]) * quantity
@@ -503,6 +521,7 @@ def instantiate_trade(
         "exit_price": round(exit_price, 6),
         "exit_reason": candidate["exit_reason"],
         "atr_at_entry": candidate["atr_at_entry"],
+        "slippage_points": candidate["slippage_points"],
         "quantity": quantity,
         "equity_at_entry": round(equity_at_entry, 2),
         "risk_pct_budget": round(float(decision["risk_pct_budget"]), 4),
@@ -718,13 +737,18 @@ def write_summary_markdown(
             "",
             "## Cost Model",
             "",
-            f"- **brokerage_calculated**: {config.brokerage_bps > 0}",
-            f"- **slippage_calculated**: {config.slippage_bps > 0}",
-            f"- **brokerage_bps**: {config.brokerage_bps}",
-            f"- **slippage_bps**: {config.slippage_bps}",
+            f"- **brokerage_calculated**: {base.fixed_trade_cost(config) > 0}",
+            f"- **slippage_calculated**: {base.any_slippage_enabled(config)}",
+            f"- **brokerage_entry_fee**: {config.brokerage_entry_fee}",
+            f"- **brokerage_exit_fee**: {config.brokerage_exit_fee}",
+            f"- **other_charges**: {config.other_charges}",
+            f"- **fixed_cost_per_trade**: {base.fixed_trade_cost(config)}",
+            f"- **equity_slippage**: {config.equity_slippage}",
+            f"- **derivatives_slippage**: {config.derivatives_slippage}",
+            f"- **commodities_slippage**: {config.commodities_slippage}",
             "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
-            if config.brokerage_bps == 0 and config.slippage_bps == 0
-            else "- **pnl_basis**: Net P&L after brokerage and slippage",
+            if not base.costs_enabled(config)
+            else "- **pnl_basis**: Net P&L after fixed brokerage/charges and fixed slippage",
         ]
     )
 
@@ -798,8 +822,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-first-candle-volume", type=float, default=0.0)
     parser.add_argument("--min-average-volume", type=float, default=0.0)
     parser.add_argument("--max-gap-pct", type=float, default=0.0)
-    parser.add_argument("--brokerage-bps", type=float, default=3.0)
-    parser.add_argument("--slippage-bps", type=float, default=2.0)
+    parser.add_argument("--brokerage-entry-fee", type=float, default=20.0)
+    parser.add_argument("--brokerage-exit-fee", type=float, default=20.0)
+    parser.add_argument("--other-charges", type=float, default=10.0)
+    parser.add_argument("--equity-slippage", type=float, default=0.2)
+    parser.add_argument("--derivatives-slippage", type=float, default=5.0)
+    parser.add_argument("--commodities-slippage", type=float, default=0.2)
     parser.add_argument("--session-start", type=base.parse_clock, default=base.parse_clock("09:15"))
     parser.add_argument("--exit-time", type=base.parse_clock, default=base.parse_clock("15:20"))
     parser.add_argument("--allow-missing-session-open", action="store_true")
@@ -835,8 +863,12 @@ def config_from_args(args: argparse.Namespace) -> PositionSizingConfig:
         min_first_candle_volume=args.min_first_candle_volume,
         min_average_volume=args.min_average_volume,
         max_gap_pct=args.max_gap_pct,
-        brokerage_bps=args.brokerage_bps,
-        slippage_bps=args.slippage_bps,
+        brokerage_entry_fee=args.brokerage_entry_fee,
+        brokerage_exit_fee=args.brokerage_exit_fee,
+        other_charges=args.other_charges,
+        equity_slippage=args.equity_slippage,
+        derivatives_slippage=args.derivatives_slippage,
+        commodities_slippage=args.commodities_slippage,
         session_start=args.session_start,
         exit_time=args.exit_time,
         require_session_open=not args.allow_missing_session_open,
