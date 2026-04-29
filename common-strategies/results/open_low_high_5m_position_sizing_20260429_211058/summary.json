@@ -1,0 +1,126 @@
+{
+  "fixed_fractional": {
+    "strategy": "Open = Low / Open = High Strategy (5-min timeframe)",
+    "starting_capital": 100000.0,
+    "ending_equity": 100249.96,
+    "net_pnl": 249.96,
+    "total_trades": 121,
+    "wins": 54,
+    "losses": 67,
+    "win_rate_pct": 44.63,
+    "average_profit_loss": 2.07,
+    "average_win": 611.64,
+    "average_loss": -489.24,
+    "max_drawdown": -7835.96,
+    "max_drawdown_pct": -7.4084,
+    "profit_factor": 1.0076,
+    "sharpe_ratio": 0.2349,
+    "markets_tested": "commodities,derivatives,equity",
+    "files_tested": 20,
+    "sessions_tested": 405,
+    "candles_tested": 48989,
+    "skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    },
+    "position_sizing_method": "fixed_fractional",
+    "total_candidates": 138,
+    "sizing_skip_counts": {
+      "gross_exposure_too_small": 16,
+      "max_open_positions": 1
+    },
+    "signal_skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    }
+  },
+  "volatility_adjusted": {
+    "strategy": "Open = Low / Open = High Strategy (5-min timeframe)",
+    "starting_capital": 100000.0,
+    "ending_equity": 100826.46,
+    "net_pnl": 826.46,
+    "total_trades": 121,
+    "wins": 54,
+    "losses": 67,
+    "win_rate_pct": 44.63,
+    "average_profit_loss": 6.83,
+    "average_win": 609.49,
+    "average_loss": -478.89,
+    "max_drawdown": -7530.88,
+    "max_drawdown_pct": -7.1026,
+    "profit_factor": 1.0258,
+    "sharpe_ratio": 0.4827,
+    "markets_tested": "commodities,derivatives,equity",
+    "files_tested": 20,
+    "sessions_tested": 405,
+    "candles_tested": 48989,
+    "skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    },
+    "position_sizing_method": "volatility_adjusted",
+    "total_candidates": 138,
+    "sizing_skip_counts": {
+      "gross_exposure_too_small": 16,
+      "max_open_positions": 1
+    },
+    "signal_skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    }
+  },
+  "fractional_kelly": {
+    "strategy": "Open = Low / Open = High Strategy (5-min timeframe)",
+    "starting_capital": 100000.0,
+    "ending_equity": 100208.36,
+    "net_pnl": 208.36,
+    "total_trades": 81,
+    "wins": 36,
+    "losses": 45,
+    "win_rate_pct": 44.44,
+    "average_profit_loss": 2.57,
+    "average_win": 685.77,
+    "average_loss": -543.99,
+    "max_drawdown": -5071.39,
+    "max_drawdown_pct": -4.8232,
+    "profit_factor": 1.0085,
+    "sharpe_ratio": 0.2496,
+    "markets_tested": "commodities,derivatives,equity",
+    "files_tested": 20,
+    "sessions_tested": 405,
+    "candles_tested": 48989,
+    "skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    },
+    "position_sizing_method": "fractional_kelly",
+    "total_candidates": 138,
+    "sizing_skip_counts": {
+      "gross_exposure_too_small": 10,
+      "no_positive_kelly_edge": 44,
+      "risk_budget_too_small": 3
+    },
+    "signal_skip_counts": {
+      "ambiguous_first_candle": 22,
+      "missing_session_open": 20,
+      "no_breakdown_entry": 33,
+      "no_breakout_entry": 25,
+      "no_open_low_high_setup": 167
+    }
+  }
+}
