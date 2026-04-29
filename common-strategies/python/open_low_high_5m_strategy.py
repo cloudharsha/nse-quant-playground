@@ -743,6 +743,13 @@ def build_summary(
         "files_tested": len(file_stats),
         "sessions_tested": sum(int(item["sessions"]) for item in file_stats),
         "candles_tested": sum(int(item["candles"]) for item in file_stats),
+        "brokerage_calculated": config.brokerage_bps > 0,
+        "slippage_calculated": config.slippage_bps > 0,
+        "brokerage_bps": config.brokerage_bps,
+        "slippage_bps": config.slippage_bps,
+        "pnl_basis": "Gross P&L; brokerage and slippage disabled"
+        if config.brokerage_bps == 0 and config.slippage_bps == 0
+        else "Net P&L after brokerage and slippage",
         "skip_counts": dict(sorted(skip_counts.items())),
     }
 
@@ -784,6 +791,30 @@ def write_markdown_summary(
         if key == "skip_counts":
             continue
         lines.append(f"- **{key}**: {value}")
+
+    lines.extend(
+        [
+            "",
+            "## Testing Scope",
+            "",
+            f"- **markets_tested**: {summary.get('markets_tested', '')}",
+            "- **timeframe**: 5-minute candles",
+            f"- **files_tested**: {summary.get('files_tested', '')}",
+            f"- **sessions_tested**: {summary.get('sessions_tested', '')}",
+            f"- **candles_tested**: {summary.get('candles_tested', '')}",
+            f"- **total_trades**: {summary.get('total_trades', '')}",
+            "",
+            "## Cost Model",
+            "",
+            f"- **brokerage_calculated**: {config.brokerage_bps > 0}",
+            f"- **slippage_calculated**: {config.slippage_bps > 0}",
+            f"- **brokerage_bps**: {config.brokerage_bps}",
+            f"- **slippage_bps**: {config.slippage_bps}",
+            "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
+            if config.brokerage_bps == 0 and config.slippage_bps == 0
+            else "- **pnl_basis**: Net P&L after brokerage and slippage",
+        ]
+    )
 
     lines.extend(["", "## Skip Counts", ""])
     for key, value in summary["skip_counts"].items():

@@ -703,6 +703,31 @@ def write_summary_markdown(
             "{profit_factor} | {sharpe_ratio} |".format(**row)
         )
 
+    first_summary = next(iter(summaries.values()), {})
+    lines.extend(
+        [
+            "",
+            "## Testing Scope",
+            "",
+            f"- **markets_tested**: {first_summary.get('markets_tested', '')}",
+            "- **timeframe**: 5-minute candles",
+            f"- **files_tested**: {first_summary.get('files_tested', '')}",
+            f"- **sessions_tested**: {first_summary.get('sessions_tested', '')}",
+            f"- **candles_tested**: {first_summary.get('candles_tested', '')}",
+            f"- **total_candidates**: {first_summary.get('total_candidates', '')}",
+            "",
+            "## Cost Model",
+            "",
+            f"- **brokerage_calculated**: {config.brokerage_bps > 0}",
+            f"- **slippage_calculated**: {config.slippage_bps > 0}",
+            f"- **brokerage_bps**: {config.brokerage_bps}",
+            f"- **slippage_bps**: {config.slippage_bps}",
+            "- **pnl_basis**: Gross P&L; brokerage and slippage disabled"
+            if config.brokerage_bps == 0 and config.slippage_bps == 0
+            else "- **pnl_basis**: Net P&L after brokerage and slippage",
+        ]
+    )
+
     lines.extend(
         [
             "",

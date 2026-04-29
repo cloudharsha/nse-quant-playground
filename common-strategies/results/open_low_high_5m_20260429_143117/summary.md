@@ -22,6 +22,23 @@
 - **sessions_tested**: 405
 - **candles_tested**: 48989
 
+## Testing Scope
+
+- **markets_tested**: commodities, derivatives, equity
+- **timeframe**: 5-minute candles
+- **files_tested**: 20
+- **sessions_tested**: 405
+- **candles_tested**: 48989
+- **total_trades**: 138
+
+## Cost Model
+
+- **brokerage_calculated**: True
+- **slippage_calculated**: True
+- **brokerage_bps**: 3.0
+- **slippage_bps**: 2.0
+- **pnl_basis**: Net P&L after brokerage and slippage
+
 ## Skip Counts
 
 - **ambiguous_first_candle**: 22

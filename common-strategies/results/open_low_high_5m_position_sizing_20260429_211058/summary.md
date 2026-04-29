@@ -8,6 +8,23 @@
 | volatility_adjusted | 121 | 44.63 | 826.46 | 100826.46 | -7.1026 | 1.0258 | 0.4827 |
 | fractional_kelly | 81 | 44.44 | 208.36 | 100208.36 | -4.8232 | 1.0085 | 0.2496 |
 
+## Testing Scope
+
+- **markets_tested**: commodities, derivatives, equity
+- **timeframe**: 5-minute candles
+- **files_tested**: 20
+- **sessions_tested**: 405
+- **candles_tested**: 48989
+- **total_candidates**: 138
+
+## Cost Model
+
+- **brokerage_calculated**: True
+- **slippage_calculated**: True
+- **brokerage_bps**: 3.0
+- **slippage_bps**: 2.0
+- **pnl_basis**: Net P&L after brokerage and slippage
+
 ## Position Sizing Logic
 
 - `fixed_fractional`: quantity is capped by live-equity risk per trade, per-trade notional, portfolio stop-risk, and gross exposure.
