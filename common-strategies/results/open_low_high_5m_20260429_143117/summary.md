@@ -59,7 +59,6 @@
 - `equity_curve.csv`
 - `instrument_metrics.csv`
 - `best_worst_trades.csv`
-- `file_stats.csv`
 - `summary.json`
 - `run_config.json`
 - `summary.md`

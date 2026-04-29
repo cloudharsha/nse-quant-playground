@@ -963,26 +963,28 @@ def main() -> None:
         config=config,
     )
 
-    output_files = [
-        output_dir / "trades.csv",
-        output_dir / "datewise_pnl.csv",
-        output_dir / "equity_curve.csv",
-        output_dir / "instrument_metrics.csv",
-        output_dir / "best_worst_trades.csv",
-        output_dir / "file_stats.csv",
-        output_dir / "summary.json",
-        output_dir / "run_config.json",
-        output_dir / "summary.md",
-    ]
+    output_paths = {
+        "trades": output_dir / "trades.csv",
+        "datewise_pnl": output_dir / "datewise_pnl.csv",
+        "equity_curve": output_dir / "equity_curve.csv",
+        "instrument_metrics": output_dir / "instrument_metrics.csv",
+        "best_worst_trades": output_dir / "best_worst_trades.csv",
+        "summary": output_dir / "summary.json",
+        "run_config": output_dir / "run_config.json",
+        "summary_markdown": output_dir / "summary.md",
+    }
+    output_files = list(output_paths.values())
 
-    write_csv(output_files[0], all_trades)
-    write_csv(output_files[1], datewise_rows)
-    write_csv(output_files[2], equity_rows)
-    write_csv(output_files[3], instrument_rows)
-    write_csv(output_files[4], best_worst_rows)
-    write_csv(output_files[5], file_stats)
-    output_files[6].write_text(json.dumps(json_ready(summary), indent=2), encoding="utf-8")
-    output_files[7].write_text(
+    write_csv(output_paths["trades"], all_trades)
+    write_csv(output_paths["datewise_pnl"], datewise_rows)
+    write_csv(output_paths["equity_curve"], equity_rows)
+    write_csv(output_paths["instrument_metrics"], instrument_rows)
+    write_csv(output_paths["best_worst_trades"], best_worst_rows)
+    output_paths["summary"].write_text(
+        json.dumps(json_ready(summary), indent=2),
+        encoding="utf-8",
+    )
+    output_paths["run_config"].write_text(
         json.dumps(
             {
                 "markets": args.markets,
@@ -993,7 +995,12 @@ def main() -> None:
         ),
         encoding="utf-8",
     )
-    write_markdown_summary(output_files[8], summary, config, output_files)
+    write_markdown_summary(
+        output_paths["summary_markdown"],
+        summary,
+        config,
+        output_files,
+    )
 
     print("")
     print(f"Results written to: {output_dir}")
