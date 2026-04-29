@@ -1,0 +1,28 @@
+{
+  "strategy": "Open = Low / Open = High Strategy (5-min timeframe)",
+  "starting_capital": 100000.0,
+  "ending_equity": 96509.67,
+  "net_pnl": -3490.33,
+  "total_trades": 138,
+  "wins": 59,
+  "losses": 79,
+  "win_rate_pct": 42.75,
+  "average_profit_loss": -25.29,
+  "average_win": 630.37,
+  "average_loss": -514.96,
+  "max_drawdown": -11360.08,
+  "max_drawdown_pct": -11.0529,
+  "profit_factor": 0.9142,
+  "sharpe_ratio": -1.1159,
+  "markets_tested": "commodities,derivatives,equity",
+  "files_tested": 20,
+  "sessions_tested": 405,
+  "candles_tested": 48989,
+  "skip_counts": {
+    "ambiguous_first_candle": 22,
+    "missing_session_open": 20,
+    "no_breakdown_entry": 33,
+    "no_breakout_entry": 25,
+    "no_open_low_high_setup": 167
+  }
+}
