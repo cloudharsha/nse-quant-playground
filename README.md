@@ -19,9 +19,18 @@ nse-quant-playground/
 │   ├── data/            # Historical derivatives data files
 │   ├── python/          # Data fetching and processing scripts
 │   └── results/         # Backtest results and analysis outputs
-└── common-strategies/   # Cross-asset trading strategies
-    ├── python/          # Strategy implementation scripts
-    └── results/         # Backtest results and performance metrics
+├── usdinr/              # USD/INR currency pair trading
+│   ├── data/            # Historical USD/INR data files (5m, 15m, 30m, 1h)
+│   ├── python/          # Data fetching and processing scripts
+│   └── results/         # Backtest results and analysis outputs
+├── pine-scripts/        # TradingView Pine Script indicators
+│   ├── Smart Money Concepts [LuxAlgo].pine
+│   └── Renko Candles Overlay.pine
+├── common-strategies/   # Cross-asset trading strategies
+│   ├── python/          # Strategy implementation scripts
+│   └── results/         # Backtest results and performance metrics
+├── brokerage.md         # Brokerage and tax reference documentation
+└── README.md            # This file
 ```
 
 ## Current Focus: Multi-Asset Trading Strategies
@@ -49,6 +58,13 @@ nse-quant-playground/
 - **Timeframes**: Daily and 5-minute intraday candles
 - **Data Source**: Yahoo Finance (yfinance)
 
+**USD/INR Data:**
+- **Exchange**: NSE (National Stock Exchange of India)
+- **Instrument**: USD/INR currency pair
+- **Time Period**: 3 months of historical data
+- **Timeframes**: 5-minute, 15-minute, 30-minute, and 1-hour candles
+- **Data Source**: Yahoo Finance (yfinance)
+
 ### Data Parameters
 
 Each dataset includes:
@@ -72,6 +88,24 @@ Each dataset includes:
   - Risk Management: Stop-loss and position sizing
   - Results: Comprehensive backtesting with equity curves, trade logs, and performance metrics
 
+- **Smart Money Concepts 5-Minute Strategy**: Advanced price action strategy based on institutional trading patterns
+  - Entry: Based on order blocks, liquidity sweeps, and market structure shifts
+  - Exit: Target-based or time-based exits
+  - Risk Management: Stop-loss and position sizing
+  - Results: Multi-timeframe analysis with comprehensive backtesting
+
+- **Sniper Entry-Exit 5-Minute Strategy**: Precision entry and exit strategy
+  - Entry: Based on specific price action patterns and confluence factors
+  - Exit: Target-based or time-based exits
+  - Risk Management: Stop-loss and position sizing
+  - Results: High-precision trade execution analysis
+
+- **Sniper Multi-Timeframe Strategy**: Multi-timeframe version of sniper strategy
+  - Entry: Based on confluence across multiple timeframes
+  - Exit: Target-based or time-based exits
+  - Risk Management: Stop-loss and position sizing
+  - Results: Cross-timeframe validation and performance analysis
+
 ### Directory Usage
 
 #### `equity/`
@@ -93,11 +127,24 @@ Each dataset includes:
 #### `common-strategies/`
 - **python/**: Cross-asset trading strategy implementations
   - `open_low_high_5m_strategy.py`: Intraday breakout strategy
+  - `smart_money_concepts_5m_strategy.py`: Smart money concepts strategy
+  - `sniper_entry_exit_5m_strategy.py`: Precision entry-exit strategy
+  - `sniper_multi_timeframe.py`: Multi-timeframe sniper strategy
 - **results/**: Strategy backtest results including:
   - Trade logs and performance metrics
   - Equity curves and P&L analysis
   - Best/worst trade analysis
   - Instrument-wise performance breakdown
+  - Multi-timeframe analysis results
+
+#### `usdinr/`
+- **data/**: CSV files with historical USD/INR data (5m, 15m, 30m, 1h timeframes)
+- **python/**: Scripts for fetching USD/INR intraday data
+- **results/**: Backtesting results and analysis outputs
+
+#### `pine-scripts/`
+- **Smart Money Concepts [LuxAlgo].pine**: TradingView indicator for smart money concepts
+- **Renko Candles Overlay.pine**: TradingView indicator for Renko candle analysis
 
 ### Getting Started
 
@@ -113,6 +160,10 @@ pip install -r requirements.txt
 
 # Derivatives data collection
 cd ../../derivatives/python
+pip install -r requirements.txt
+
+# USD/INR data collection
+cd ../../usdinr/python
 pip install -r requirements.txt
 ```
 
@@ -132,6 +183,10 @@ python fetch_commodities_intraday.py
 cd ../../derivatives/python
 python fetch_nifty_data.py
 python fetch_nifty_intraday.py
+
+# USD/INR data (multiple timeframes)
+cd ../../usdinr/python
+python fetch_usdinr_intraday.py
 ```
 
 **3. Run Strategies:**
@@ -139,6 +194,9 @@ python fetch_nifty_intraday.py
 # Common strategies
 cd common-strategies/python
 python open_low_high_5m_strategy.py
+python smart_money_concepts_5m_strategy.py
+python sniper_entry_exit_5m_strategy.py
+python sniper_multi_timeframe.py
 ```
 
 **4. Analyze Results:**
@@ -148,10 +206,23 @@ import pandas as pd
 # Load equity data
 df = pd.read_csv('../equity/data/RELIANCE_NS_equity_data.csv')
 
+# Load USD/INR data
+usdinr_5m = pd.read_csv('../usdinr/data/USDINR_data_5m.csv')
+usdinr_15m = pd.read_csv('../usdinr/data/USDINR_data_15m.csv')
+
 # Load strategy results
 results = pd.read_csv('../common-strategies/results/open_low_high_5m_20260429_143117/trades.csv')
 summary = pd.read_json('../common-strategies/results/open_low_high_5m_20260429_143117/summary.json')
+
+# Load multi-timeframe results
+smc_results = pd.read_csv('../common-strategies/results/smart_money_concepts_multi_timeframe_latest/trades.csv')
+sniper_results = pd.read_csv('../common-strategies/results/sniper_multi_timeframe_with_usdinr_latest/trades.csv')
 ```
+
+**5. Brokerage and Costs:**
+- Refer to [brokerage.md](brokerage.md) for detailed cost calculations
+- Includes segment-wise tax and charges for NSE and MCX
+- Used as default cost model in backtesting strategies
 
 ### Default Stocks
 
