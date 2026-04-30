@@ -281,30 +281,31 @@ def build_simple_markdown_summary(
         f"- **Win Rate:** {summary['win_rate_pct']}%",
         f"- **Max Drawdown:** {summary['max_drawdown_pct']}%",
         f"- **Profit Factor:** {summary['profit_factor']}",
-        f"- **Average Trade:** {summary['avg_trade']}",
-        f"- **Total Sessions:** {summary['total_sessions']}",
+        f"- **Average Profit/Loss:** {summary['average_profit_loss']}",
+        f"- **Total Sessions:** {summary['sessions_tested']}",
         "",
         "## Trade Statistics",
         "",
-        f"- **Winning Trades:** {summary['winning_trades']}",
-        f"- **Losing Trades:** {summary['losing_trades']}",
-        f"- **Average Win:** {summary['avg_win']}",
-        f"- **Average Loss:** {summary['avg_loss']}",
-        f"- **Largest Win:** {summary['largest_win']}",
-        f"- **Largest Loss:** {summary['largest_loss']}",
+        f"- **Winning Trades:** {summary['wins']}",
+        f"- **Losing Trades:** {summary['losses']}",
+        f"- **Average Win:** {summary['average_win']}",
+        f"- **Average Loss:** {summary['average_loss']}",
         "",
         "## Output Files",
         "",
-        for name, path in output_paths.items():
-            if name != "markdown":
-                lines.append(f"- [{name}]({path.name})")
+    ]
+    for name, path in output_paths.items():
+        if name != "markdown":
+            lines.append(f"- [{name}]({path.name})")
+
+    lines.extend([
         "",
         "## Configuration",
         "",
-        f"- **Capital:** {summary.get('capital', 'N/A')}",
-        f"- **Risk Per Trade:** {summary.get('risk_per_trade_pct', 'N/A')}%",
+        f"- **Starting Capital:** {summary['starting_capital']}",
+        f"- **Ending Equity:** {summary['ending_equity']}",
         "",
-    ]
+    ])
     return "\n".join(lines)
 
 

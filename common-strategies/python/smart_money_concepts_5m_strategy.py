@@ -8,17 +8,17 @@ its actionable alerts into explicit backtest rules:
 - Detect swing structure using a 50-bar SMC leg.
 - Trade bullish/bearish BOS and CHoCH events.
 - Use the event order block as stop when valid, otherwise ATR fallback.
-- Enter on the next 5-minute candle open after the signal candle closes.
+- Enter on the next candle open after the signal candle closes.
 - Exit on target, stop, opposite structure event, session end, or final bar.
 
-The script runs the same signals across all 5-minute files in commodities,
-derivatives, and equity, then writes reports into common-strategies/results.
+The script runs the same signals across all selected timeframes in commodities,
+derivatives, and equity, then writes a compact detailed summary into
+common-strategies/results.
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import math
 import statistics
@@ -30,6 +30,37 @@ from typing import Any
 
 import open_low_high_5m_strategy as base
 
+
+DEFAULT_TIMEFRAMES = ("5m", "15m", "30m", "1h")
+TIMEFRAME_ALIASES = {
+    "5": "5m",
+    "5m": "5m",
+    "5min": "5m",
+    "5minute": "5m",
+    "5minutes": "5m",
+    "15": "15m",
+    "15m": "15m",
+    "15min": "15m",
+    "15minute": "15m",
+    "15minutes": "15m",
+    "30": "30m",
+    "30m": "30m",
+    "30min": "30m",
+    "30minute": "30m",
+    "30minutes": "30m",
+    "60": "1h",
+    "60m": "1h",
+    "1h": "1h",
+    "1hr": "1h",
+    "1hour": "1h",
+    "1hours": "1h",
+}
+TIMEFRAME_LABELS = {
+    "5m": "5-minute candles",
+    "15m": "15-minute candles",
+    "30m": "30-minute candles",
+    "1h": "1-hour candles",
+}
 
 BULLISH = 1
 BEARISH = -1
@@ -76,6 +107,61 @@ class SMCConfig:
     ambiguous_policy: str
     variants: tuple[str, ...]
     top_trade_count: int
+
+
+def normalize_timeframe(value: str) -> str:
+    cleaned = value.strip().lower().replace("-", "").replace("_", "")
+    cleaned = cleaned.replace(" ", "")
+    timeframe = TIMEFRAME_ALIASES.get(cleaned)
+    if timeframe is None:
+        valid = ", ".join(DEFAULT_TIMEFRAMES)
+        raise argparse.ArgumentTypeError(f"Unsupported timeframe {value!r}. Use one of: {valid}")
+    return timeframe
+
+
+def parse_timeframes(values: list[str]) -> tuple[str, ...]:
+    seen: list[str] = []
+    for value in values:
+        timeframe = normalize_timeframe(value)
+        if timeframe not in seen:
+            seen.append(timeframe)
+    return tuple(seen)
+
+
+def timeframe_label(timeframe: str) -> str:
+    return TIMEFRAME_LABELS.get(timeframe, timeframe)
+
+
+def timeframe_sort_key(timeframe: str) -> tuple[int, str]:
+    try:
+        return DEFAULT_TIMEFRAMES.index(timeframe), timeframe
+    except ValueError:
+        return len(DEFAULT_TIMEFRAMES), timeframe
+
+
+def discover_data_files_for_timeframe(
+    repo_root: Path,
+    markets: list[str],
+    timeframe: str,
+) -> list[Path]:
+    files: list[Path] = []
+    for market in markets:
+        data_dir = repo_root / market / "data"
+        if data_dir.exists():
+            files.extend(sorted(data_dir.glob(f"*_{timeframe}.csv")))
+    return sorted(files)
+
+
+def instrument_name_for_timeframe(path: Path, timeframe: str) -> str:
+    stem = path.stem
+    for suffix in (
+        f"_equity_data_{timeframe}",
+        f"_data_{timeframe}",
+        f"_{timeframe}",
+    ):
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)]
+    return base.instrument_name(path)
 
 
 def true_range_values(candles: list[dict[str, Any]]) -> list[float]:
@@ -231,6 +317,7 @@ def order_block_from_range(
         "high": float(candle["PARSED_HIGH"]),
         "low": float(candle["PARSED_LOW"]),
     }
+    return summary
 
 
 def structure_event(
@@ -420,6 +507,23 @@ def opposite_direction(direction: str) -> str:
     return "SHORT" if direction == "LONG" else "LONG"
 
 
+def charge_breakdown_for_trade(
+    entry_price: float,
+    exit_price: float,
+    quantity: int,
+    market: str,
+    instrument: str,
+    config: SMCConfig,
+) -> dict[str, Any]:
+    segment = base.charge_segment_for_market(market, instrument)
+    return base.charge_breakdown_for_segment(
+        abs(entry_price) * quantity,
+        abs(exit_price) * quantity,
+        segment,
+        float(config.cost_multiplier),
+    )
+
+
 def close_trade(
     trade: dict[str, Any],
     candle: dict[str, Any],
@@ -438,7 +542,7 @@ def close_trade(
     else:
         gross_pnl = (entry_price - exit_price) * quantity
 
-    costs = base.brokerage_cost(
+    charges = charge_breakdown_for_trade(
         entry_price,
         exit_price,
         quantity,
@@ -446,6 +550,7 @@ def close_trade(
         trade["instrument"],
         config,
     )
+    costs = float(charges["total"])
     net_pnl = gross_pnl - costs
     risk_amount = float(trade["position_risk_amount"])
     notional = float(trade["notional"])
@@ -457,6 +562,16 @@ def close_trade(
             "exit_reason": exit_reason,
             "gross_pnl": round(gross_pnl, 2),
             "costs": round(costs, 2),
+            "charge_segment": charges["segment"],
+            "charge_segment_label": charges["segment_label"],
+            "turnover": charges["turnover"],
+            "brokerage": charges["brokerage"],
+            "stt": charges.get("stt", 0.0),
+            "ctt": charges.get("ctt", 0.0),
+            "exchange_charge": charges["exchange_charge"],
+            "gst": charges["gst"],
+            "sebi_charges": charges["sebi_charges"],
+            "stamp_duty": charges["stamp_duty"],
             "net_pnl": round(net_pnl, 2),
             "return_pct_on_notional": round((net_pnl / notional) * 100.0, 4)
             if notional > 0
@@ -484,6 +599,7 @@ def event_by_index(events: list[dict[str, Any]], variant: str) -> dict[int, list
 def build_trade(
     market: str,
     instrument: str,
+    timeframe: str,
     variant: str,
     event: dict[str, Any],
     entry_candle: dict[str, Any],
@@ -514,6 +630,7 @@ def build_trade(
 
     return {
         "variant": variant,
+        "timeframe": timeframe,
         "market": market,
         "instrument": instrument,
         "session_date": entry_candle["dt"].date().isoformat(),
@@ -549,12 +666,13 @@ def public_trade(trade: dict[str, Any]) -> dict[str, Any]:
 
 def backtest_instrument_variant(
     path: Path,
+    timeframe: str,
     variant: str,
     config: SMCConfig,
     skip_counts: dict[str, int],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     market = base.market_name(path)
-    instrument = base.instrument_name(path)
+    instrument = instrument_name_for_timeframe(path, timeframe)
     raw_candles = base.load_candles(path)
     sessions = base.group_sessions(raw_candles, config.session_start, config.exit_time)
 
@@ -589,6 +707,7 @@ def backtest_instrument_variant(
                 active_trade = build_trade(
                     market,
                     instrument,
+                    timeframe,
                     variant,
                     pending_event,
                     candle,
@@ -721,6 +840,7 @@ def backtest_instrument_variant(
         )
 
     stats = {
+        "timeframe": timeframe,
         "market": market,
         "instrument": instrument,
         "file": str(path),
@@ -772,7 +892,16 @@ def max_drawdown(equity_rows: list[dict[str, Any]], starting_capital: float) -> 
     return base.max_drawdown_from_equity(equity_values)
 
 
+def profit_factor_from_values(values: list[float]) -> float | str:
+    gross_profit = sum(max(value, 0.0) for value in values)
+    gross_loss = abs(sum(min(value, 0.0) for value in values))
+    if gross_loss == 0:
+        return "inf" if gross_profit > 0 else ""
+    return gross_profit / gross_loss
+
+
 def build_summary(
+    timeframe: str,
     variant: str,
     trades: list[dict[str, Any]],
     file_stats: list[dict[str, Any]],
@@ -781,33 +910,65 @@ def build_summary(
 ) -> dict[str, Any]:
     datewise_rows = base.build_datewise_pnl(trades, config.capital)
     equity_rows = base.build_equity_curve(trades, config.capital)
+    gross_values = [float(trade["gross_pnl"]) for trade in trades]
     net_values = [float(trade["net_pnl"]) for trade in trades]
     wins = [value for value in net_values if value > 0]
     losses = [value for value in net_values if value <= 0]
+    gross_wins = [value for value in gross_values if value > 0]
+    gross_losses = [value for value in gross_values if value <= 0]
     pf = base.profit_factor(trades)
+    gross_pf = profit_factor_from_values(gross_values)
     max_dd, max_dd_pct = max_drawdown(equity_rows, config.capital)
     sharpe = sharpe_ratio(datewise_rows)
     trade_dates = sorted({trade["session_date"] for trade in trades})
+    traded_instruments = sorted(
+        {f"{trade['market']}:{trade['instrument']}:{timeframe}" for trade in trades}
+    )
+    tested_instruments = sorted(
+        {f"{item['market']}:{item['instrument']}:{timeframe}" for item in file_stats}
+    )
+    total_costs = sum(float(trade["costs"]) for trade in trades)
+    total_turnover = sum(float(trade.get("turnover", 0.0)) for trade in trades)
+    total_notional = sum(float(trade.get("notional", 0.0)) for trade in trades)
 
-    return {
-        "strategy": "Smart Money Concepts [LuxAlgo] inspired 5m backtest",
+    summary = {
+        "strategy": "Smart Money Concepts [LuxAlgo] inspired multi-timeframe backtest",
+        "timeframe": timeframe,
+        "timeframe_label": timeframe_label(timeframe),
         "variant": variant,
         "starting_capital": round(config.capital, 2),
+        "ending_equity_without_brokerage": round(config.capital + sum(gross_values), 2),
+        "ending_equity_with_brokerage": round(config.capital + sum(net_values), 2),
         "ending_equity": round(config.capital + sum(net_values), 2),
+        "gross_pnl_before_brokerage": round(sum(gross_values), 2),
+        "brokerage_and_charges": round(total_costs, 2),
+        "total_costs": round(total_costs, 2),
+        "net_pnl_after_brokerage": round(sum(net_values), 2),
         "total_profit_loss": round(sum(net_values), 2),
         "net_pnl": round(sum(net_values), 2),
         "total_trades": len(trades),
         "wins": len(wins),
         "losses": len(losses),
         "win_rate_pct": round((len(wins) / len(trades)) * 100.0, 2) if trades else 0.0,
+        "gross_wins": len(gross_wins),
+        "gross_losses": len(gross_losses),
+        "gross_win_rate_pct": round((len(gross_wins) / len(trades)) * 100.0, 2)
+        if trades
+        else 0.0,
         "average_profit_loss": round(statistics.mean(net_values), 2) if net_values else 0.0,
+        "average_gross_profit_loss": round(statistics.mean(gross_values), 2)
+        if gross_values
+        else 0.0,
+        "average_cost_per_trade": round(total_costs / len(trades), 2) if trades else 0.0,
         "average_win": round(statistics.mean(wins), 2) if wins else 0.0,
         "average_loss": round(statistics.mean(losses), 2) if losses else 0.0,
         "max_drawdown": round(max_dd, 2),
         "max_drawdown_pct": round(max_dd_pct, 4),
         "profit_factor": round(pf, 4) if isinstance(pf, float) else pf,
+        "gross_profit_factor": round(gross_pf, 4) if isinstance(gross_pf, float) else gross_pf,
         "sharpe_ratio": round(sharpe, 4) if sharpe is not None else "",
-        "total_costs": round(sum(float(trade["costs"]) for trade in trades), 2),
+        "total_turnover": round(total_turnover, 2),
+        "total_entry_notional": round(total_notional, 2),
         "markets_tested": ",".join(sorted({item["market"] for item in file_stats})),
         "files_tested": len(file_stats),
         "sessions_tested": sum(int(item["sessions"]) for item in file_stats),
@@ -815,10 +976,11 @@ def build_summary(
         "events_tested": sum(int(item["events"]) for item in file_stats),
         "trade_start_date": trade_dates[0] if trade_dates else "",
         "trade_end_date": trade_dates[-1] if trade_dates else "",
-        "trade_timeframe": "5-minute candles",
-        "traded_instruments": ",".join(
-            sorted({f"{item['market']}:{item['instrument']}:5m" for item in file_stats})
-        ),
+        "trade_timeframe": timeframe_label(timeframe),
+        "traded_instrument_count": len(traded_instruments),
+        "tested_instrument_count": len(tested_instruments),
+        "traded_instruments": ",".join(traded_instruments),
+        "tested_instruments": ",".join(tested_instruments),
         "skip_counts": dict(sorted(skip_counts.items())),
     }
     summary.update(base.cost_model_summary(config))
@@ -827,9 +989,16 @@ def build_summary(
 
 def comparison_row(summary: dict[str, Any]) -> dict[str, Any]:
     return {
+        "timeframe": summary["timeframe"],
         "variant": summary["variant"],
+        "files_tested": summary["files_tested"],
+        "sessions_tested": summary["sessions_tested"],
+        "candles_tested": summary["candles_tested"],
         "events_tested": summary["events_tested"],
         "total_trades": summary["total_trades"],
+        "gross_pnl_before_brokerage": summary["gross_pnl_before_brokerage"],
+        "brokerage_and_charges": summary["brokerage_and_charges"],
+        "net_pnl_after_brokerage": summary["net_pnl_after_brokerage"],
         "win_rate_pct": summary["win_rate_pct"],
         "net_pnl": summary["net_pnl"],
         "ending_equity": summary["ending_equity"],
@@ -841,47 +1010,398 @@ def comparison_row(summary: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def sum_trade_value(trades: list[dict[str, Any]], key: str) -> float:
+    return sum(float(trade.get(key, 0.0) or 0.0) for trade in trades)
+
+
+def build_instrument_rows(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for trade in trades:
+        grouped[
+            (
+                str(trade["timeframe"]),
+                str(trade["variant"]),
+                str(trade["market"]),
+                str(trade["instrument"]),
+            )
+        ].append(trade)
+
+    rows: list[dict[str, Any]] = []
+    for (timeframe, variant, market, instrument), group_trades in sorted(
+        grouped.items(),
+        key=lambda item: (timeframe_sort_key(item[0][0]), item[0][1], item[0][2], item[0][3]),
+    ):
+        net_values = [float(trade["net_pnl"]) for trade in group_trades]
+        wins = [value for value in net_values if value > 0]
+        rows.append(
+            {
+                "timeframe": timeframe,
+                "variant": variant,
+                "market": market,
+                "instrument": instrument,
+                "trades": len(group_trades),
+                "long_trades": sum(1 for trade in group_trades if trade["direction"] == "LONG"),
+                "short_trades": sum(1 for trade in group_trades if trade["direction"] == "SHORT"),
+                "gross_pnl_before_brokerage": round(sum_trade_value(group_trades, "gross_pnl"), 2),
+                "brokerage_and_charges": round(sum_trade_value(group_trades, "costs"), 2),
+                "net_pnl_after_brokerage": round(sum(net_values), 2),
+                "win_rate_pct": round((len(wins) / len(group_trades)) * 100.0, 2)
+                if group_trades
+                else 0.0,
+                "average_net_pnl": round(statistics.mean(net_values), 2) if net_values else 0.0,
+                "best_trade": round(max(net_values), 2) if net_values else 0.0,
+                "worst_trade": round(min(net_values), 2) if net_values else 0.0,
+                "turnover": round(sum_trade_value(group_trades, "turnover"), 2),
+                "entry_notional": round(sum_trade_value(group_trades, "notional"), 2),
+            }
+        )
+    return rows
+
+
+def build_charge_rows(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for trade in trades:
+        grouped[
+            (
+                str(trade["timeframe"]),
+                str(trade["variant"]),
+                str(trade.get("charge_segment", "")),
+                str(trade.get("charge_segment_label", "")),
+            )
+        ].append(trade)
+
+    rows: list[dict[str, Any]] = []
+    for (timeframe, variant, segment, label), group_trades in sorted(
+        grouped.items(),
+        key=lambda item: (timeframe_sort_key(item[0][0]), item[0][1], item[0][2], item[0][3]),
+    ):
+        turnover = sum_trade_value(group_trades, "turnover")
+        total = sum_trade_value(group_trades, "costs")
+        rows.append(
+            {
+                "timeframe": timeframe,
+                "variant": variant,
+                "segment": segment,
+                "segment_label": label,
+                "trades": len(group_trades),
+                "turnover": round(turnover, 2),
+                "brokerage": round(sum_trade_value(group_trades, "brokerage"), 2),
+                "stt": round(sum_trade_value(group_trades, "stt"), 2),
+                "ctt": round(sum_trade_value(group_trades, "ctt"), 2),
+                "exchange_charge": round(sum_trade_value(group_trades, "exchange_charge"), 2),
+                "gst": round(sum_trade_value(group_trades, "gst"), 2),
+                "sebi_charges": round(sum_trade_value(group_trades, "sebi_charges"), 2),
+                "stamp_duty": round(sum_trade_value(group_trades, "stamp_duty"), 2),
+                "total_charges": round(total, 2),
+                "charge_pct_of_turnover": round((total / turnover) * 100.0, 4)
+                if turnover
+                else 0.0,
+            }
+        )
+    return rows
+
+
+def build_direction_exit_rows(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for trade in trades:
+        grouped[
+            (
+                str(trade["timeframe"]),
+                str(trade["variant"]),
+                str(trade["direction"]),
+                str(trade["exit_reason"]),
+            )
+        ].append(trade)
+
+    rows: list[dict[str, Any]] = []
+    for (timeframe, variant, direction, exit_reason), group_trades in sorted(
+        grouped.items(),
+        key=lambda item: (timeframe_sort_key(item[0][0]), item[0][1], item[0][2], item[0][3]),
+    ):
+        rows.append(
+            {
+                "timeframe": timeframe,
+                "variant": variant,
+                "direction": direction,
+                "exit_reason": exit_reason,
+                "trades": len(group_trades),
+                "gross_pnl_before_brokerage": round(sum_trade_value(group_trades, "gross_pnl"), 2),
+                "brokerage_and_charges": round(sum_trade_value(group_trades, "costs"), 2),
+                "net_pnl_after_brokerage": round(sum_trade_value(group_trades, "net_pnl"), 2),
+            }
+        )
+    return rows
+
+
+def build_skip_rows(run_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for result in run_results:
+        if not result.get("success"):
+            rows.append(
+                {
+                    "timeframe": result["timeframe"],
+                    "variant": result.get("variant", ""),
+                    "reason": "run_failed",
+                    "count": result.get("error", ""),
+                }
+            )
+            continue
+        summary = result["summary"]
+        for reason, count in summary.get("skip_counts", {}).items():
+            rows.append(
+                {
+                    "timeframe": result["timeframe"],
+                    "variant": result["variant"],
+                    "reason": reason,
+                    "count": count,
+                }
+            )
+    return rows
+
+
+def build_best_worst_trade_rows(
+    trades: list[dict[str, Any]],
+    count: int,
+) -> list[dict[str, Any]]:
+    if not trades or count <= 0:
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for rank_type, ordered in (
+        ("BEST", sorted(trades, key=lambda trade: float(trade["net_pnl"]), reverse=True)),
+        ("WORST", sorted(trades, key=lambda trade: float(trade["net_pnl"]))),
+    ):
+        for rank, trade in enumerate(ordered[:count], start=1):
+            rows.append(
+                {
+                    "rank_type": rank_type,
+                    "rank": rank,
+                    "timeframe": trade["timeframe"],
+                    "variant": trade["variant"],
+                    "market": trade["market"],
+                    "instrument": trade["instrument"],
+                    "session_date": trade["session_date"],
+                    "direction": trade["direction"],
+                    "signal": trade["signal"],
+                    "exit_reason": trade["exit_reason"],
+                    "quantity": trade["quantity"],
+                    "entry_price": trade["entry_price"],
+                    "exit_price": trade["exit_price"],
+                    "gross_pnl_before_brokerage": trade["gross_pnl"],
+                    "brokerage_and_charges": trade["costs"],
+                    "net_pnl_after_brokerage": trade["net_pnl"],
+                }
+            )
+    return rows
+
+
+def build_best_by_timeframe_rows(comparison_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in comparison_rows:
+        grouped[str(row["timeframe"])].append(row)
+
+    rows: list[dict[str, Any]] = []
+    for timeframe, timeframe_rows in sorted(
+        grouped.items(),
+        key=lambda item: timeframe_sort_key(item[0]),
+    ):
+        best = max(timeframe_rows, key=lambda row: float(row["net_pnl_after_brokerage"]))
+        rows.append(
+            {
+                "timeframe": timeframe,
+                "best_variant": best["variant"],
+                "trades": best["total_trades"],
+                "gross_pnl_before_brokerage": best["gross_pnl_before_brokerage"],
+                "brokerage_and_charges": best["brokerage_and_charges"],
+                "net_pnl_after_brokerage": best["net_pnl_after_brokerage"],
+                "win_rate_pct": best["win_rate_pct"],
+                "profit_factor": best["profit_factor"],
+            }
+        )
+    return rows
+
+
+def markdown_cell(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).replace("|", "\\|")
+
+
+def append_markdown_table(
+    lines: list[str],
+    rows: list[dict[str, Any]],
+    columns: list[tuple[str, str]],
+) -> None:
+    if not rows:
+        lines.append("_None._")
+        return
+
+    lines.append("| " + " | ".join(label for label, _ in columns) + " |")
+    lines.append("| " + " | ".join("---" for _ in columns) + " |")
+    for row in rows:
+        lines.append(
+            "| "
+            + " | ".join(markdown_cell(row.get(key, "")) for _, key in columns)
+            + " |"
+        )
+
+
 def write_summary_markdown(
     path: Path,
-    comparison_rows: list[dict[str, Any]],
-    summaries: dict[str, dict[str, Any]],
+    payload: dict[str, Any],
     config: SMCConfig,
     output_files: list[Path],
 ) -> None:
-    first_summary = next(iter(summaries.values()), {})
-    lines = [
-        "# Smart Money Concepts [LuxAlgo] Inspired 5m Backtest",
-        "",
-        "## Variant Comparison",
-        "",
-        "| Variant | Events | Trades | Win Rate % | Net P&L | Costs | Max DD % | Profit Factor | Sharpe |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
-    ]
-    for row in comparison_rows:
-        lines.append(
-            "| {variant} | {events_tested} | {total_trades} | {win_rate_pct} | "
-            "{net_pnl} | {total_costs} | {max_drawdown_pct} | "
-            "{profit_factor} | {sharpe_ratio} |".format(**row)
-        )
-
-    lines.extend(
-        [
-            "",
-            "## Testing Scope",
-            "",
-            f"- **markets_tested**: {first_summary.get('markets_tested', '')}",
-            "- **timeframe**: 5-minute candles",
-            f"- **files_tested**: {first_summary.get('files_tested', '')}",
-            f"- **sessions_tested**: {first_summary.get('sessions_tested', '')}",
-            f"- **candles_tested**: {first_summary.get('candles_tested', '')}",
-            f"- **trade_start_date**: {first_summary.get('trade_start_date', '')}",
-            f"- **trade_end_date**: {first_summary.get('trade_end_date', '')}",
-            f"- **traded_instruments**: {first_summary.get('traded_instruments', '')}",
-            "",
-            "## Cost Model",
-            "",
-        ]
+    comparison_rows = payload["timeframe_variant_summary"]
+    best_by_timeframe_rows = payload["best_by_timeframe"]
+    instrument_rows = payload["what_traded_by_instrument"]
+    charge_rows = payload["brokerage_by_segment"]
+    direction_exit_rows = payload["direction_exit_summary"]
+    best_worst_rows = payload["best_worst_trades"]
+    skip_rows = payload["skipped_signals"]
+    failed_runs = [result for result in payload["runs"] if not result.get("success")]
+    best_net = (
+        max(comparison_rows, key=lambda row: float(row["net_pnl_after_brokerage"]))
+        if comparison_rows
+        else {}
     )
+    best_gross = (
+        max(comparison_rows, key=lambda row: float(row["gross_pnl_before_brokerage"]))
+        if comparison_rows
+        else {}
+    )
+
+    lines = [
+        "# Smart Money Concepts [LuxAlgo] Multi-Timeframe Backtest",
+        "",
+        "## Executive Summary",
+        "",
+        f"- **generated_at**: {payload['generated_at']}",
+        f"- **markets_tested**: {', '.join(payload['markets'])}",
+        f"- **timeframes_tested**: {', '.join(payload['timeframes'])}",
+        f"- **variants_tested**: {', '.join(payload['variants'])}",
+        f"- **starting_capital**: {config.capital}",
+        f"- **best_after_brokerage**: {best_net.get('timeframe', '')} / "
+        f"{best_net.get('variant', '')} = {best_net.get('net_pnl_after_brokerage', '')}",
+        f"- **best_before_brokerage**: {best_gross.get('timeframe', '')} / "
+        f"{best_gross.get('variant', '')} = {best_gross.get('gross_pnl_before_brokerage', '')}",
+        "- **pnl_note**: Before Brokerage includes configured slippage; After Brokerage subtracts segment-wise brokerage, taxes, and charges.",
+        "",
+        "## Timeframe And Variant Results",
+        "",
+    ]
+    append_markdown_table(
+        lines,
+        comparison_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Files", "files_tested"),
+            ("Events", "events_tested"),
+            ("Trades", "total_trades"),
+            ("Before Brokerage", "gross_pnl_before_brokerage"),
+            ("Brokerage/Charges", "brokerage_and_charges"),
+            ("After Brokerage", "net_pnl_after_brokerage"),
+            ("Win %", "win_rate_pct"),
+            ("Max DD %", "max_drawdown_pct"),
+            ("PF", "profit_factor"),
+            ("Sharpe", "sharpe_ratio"),
+        ],
+    )
+
+    lines.extend(["", "## Best Variant Per Timeframe", ""])
+    append_markdown_table(
+        lines,
+        best_by_timeframe_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Best Variant", "best_variant"),
+            ("Trades", "trades"),
+            ("Before Brokerage", "gross_pnl_before_brokerage"),
+            ("Brokerage/Charges", "brokerage_and_charges"),
+            ("After Brokerage", "net_pnl_after_brokerage"),
+            ("Win %", "win_rate_pct"),
+            ("PF", "profit_factor"),
+        ],
+    )
+
+    lines.extend(["", "## What Was Traded", ""])
+    append_markdown_table(
+        lines,
+        instrument_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Market", "market"),
+            ("Instrument", "instrument"),
+            ("Trades", "trades"),
+            ("Long", "long_trades"),
+            ("Short", "short_trades"),
+            ("Before Brokerage", "gross_pnl_before_brokerage"),
+            ("Charges", "brokerage_and_charges"),
+            ("After Brokerage", "net_pnl_after_brokerage"),
+            ("Win %", "win_rate_pct"),
+        ],
+    )
+
+    lines.extend(["", "## Brokerage And Charges", ""])
+    append_markdown_table(
+        lines,
+        charge_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Segment", "segment_label"),
+            ("Trades", "trades"),
+            ("Turnover", "turnover"),
+            ("Brokerage", "brokerage"),
+            ("STT", "stt"),
+            ("CTT", "ctt"),
+            ("Exchange", "exchange_charge"),
+            ("GST", "gst"),
+            ("SEBI", "sebi_charges"),
+            ("Stamp", "stamp_duty"),
+            ("Total", "total_charges"),
+        ],
+    )
+
+    lines.extend(["", "## Direction And Exit Summary", ""])
+    append_markdown_table(
+        lines,
+        direction_exit_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Direction", "direction"),
+            ("Exit", "exit_reason"),
+            ("Trades", "trades"),
+            ("Before Brokerage", "gross_pnl_before_brokerage"),
+            ("Charges", "brokerage_and_charges"),
+            ("After Brokerage", "net_pnl_after_brokerage"),
+        ],
+    )
+
+    lines.extend(["", "## Best And Worst Trades", ""])
+    append_markdown_table(
+        lines,
+        best_worst_rows,
+        [
+            ("Rank Type", "rank_type"),
+            ("Rank", "rank"),
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Market", "market"),
+            ("Instrument", "instrument"),
+            ("Date", "session_date"),
+            ("Direction", "direction"),
+            ("Exit", "exit_reason"),
+            ("Before Brokerage", "gross_pnl_before_brokerage"),
+            ("Charges", "brokerage_and_charges"),
+            ("After Brokerage", "net_pnl_after_brokerage"),
+        ],
+    )
+
+    lines.extend(["", "## Cost Model", ""])
     for key, value in base.cost_model_summary(config).items():
         lines.append(f"- **{key}**: {value}")
 
@@ -891,8 +1411,8 @@ def write_summary_markdown(
             "## Backtest Rules",
             "",
             "- Structure events are based on the LuxAlgo SMC BOS/CHoCH alert logic.",
-            "- Internal structure uses a 5-bar leg; swing structure uses a 50-bar leg.",
-            "- Entry happens at the next 5-minute candle open after a signal candle closes.",
+            "- Internal structure uses the configured internal leg length; swing structure uses the configured swing leg length.",
+            "- Entry happens at the next candle open after a signal candle closes.",
             "- Stop-loss uses the event order block when valid, otherwise ATR fallback.",
             "- Target uses fixed risk/reward from the entry to stop distance.",
             "- Trades exit on target, stop, opposite structure event, session end, or final bar.",
@@ -906,22 +1426,34 @@ def write_summary_markdown(
             "- `swing_choch`: swing CHoCH events only.",
             "- `combined_all`: internal and swing BOS/CHoCH events.",
             "",
-            "## Skip Counts",
+            "## Skipped Signals",
             "",
         ]
     )
+    append_markdown_table(
+        lines,
+        skip_rows,
+        [
+            ("Timeframe", "timeframe"),
+            ("Variant", "variant"),
+            ("Reason", "reason"),
+            ("Count", "count"),
+        ],
+    )
 
-    for variant, summary in summaries.items():
-        lines.append(f"### {variant}")
-        skips = summary.get("skip_counts", {})
-        if skips:
-            for key, value in skips.items():
-                lines.append(f"- **{key}**: {value}")
-        else:
-            lines.append("- None")
-        lines.append("")
+    if failed_runs:
+        lines.extend(["", "## Failed Runs", ""])
+        append_markdown_table(
+            lines,
+            failed_runs,
+            [
+                ("Timeframe", "timeframe"),
+                ("Variant", "variant"),
+                ("Error", "error"),
+            ],
+        )
 
-    lines.extend(["## Parameters", ""])
+    lines.extend(["", "## Parameters", ""])
     for key, value in config.__dict__.items():
         if isinstance(value, time):
             value = value.strftime("%H:%M")
@@ -944,8 +1476,14 @@ def parse_variants(values: list[str]) -> tuple[str, ...]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Backtest Smart Money Concepts [LuxAlgo]-inspired 5m strategy.",
+        description="Backtest Smart Money Concepts [LuxAlgo]-inspired strategy across timeframes.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--timeframes",
+        nargs="+",
+        default=list(DEFAULT_TIMEFRAMES),
+        help="Timeframes to test. Accepts 5m/15m/30m/1h or 5/15/30/60.",
     )
     parser.add_argument(
         "--markets",
@@ -989,6 +1527,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--top-trade-count", type=int, default=10)
     parser.add_argument("--run-name", default="")
+    parser.add_argument(
+        "--write-trade-audit",
+        action="store_true",
+        help="Also write one all_trades.csv audit file. Default keeps output to summaries only.",
+    )
     return parser.parse_args()
 
 
@@ -1032,105 +1575,148 @@ def json_ready(value: Any) -> Any:
 
 def main() -> None:
     args = parse_args()
+    timeframes = parse_timeframes(args.timeframes)
     config = config_from_args(args)
 
     script_path = Path(__file__).resolve()
     repo_root = script_path.parents[2]
     common_root = script_path.parents[1]
     results_root = common_root / "results"
-    run_name = args.run_name.strip() or f"smart_money_concepts_5m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    run_name = args.run_name.strip() or (
+        f"smart_money_concepts_multi_timeframe_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
     output_dir = results_root / run_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    data_files = base.discover_data_files(repo_root, args.markets)
-    if not data_files:
-        raise SystemExit("No *_5m.csv files found in selected market data folders.")
+    print("Running Smart Money Concepts multi-timeframe backtest")
+    print(f"Timeframes: {', '.join(timeframes)}")
+    print(f"Markets: {', '.join(args.markets)}")
+    print(f"Variants: {', '.join(config.variants)}")
 
-    print(f"Running Smart Money Concepts backtest on {len(data_files)} files...")
-    summaries: dict[str, dict[str, Any]] = {}
+    run_results: list[dict[str, Any]] = []
     comparison_rows: list[dict[str, Any]] = []
-    output_files: list[Path] = []
+    all_trades: list[dict[str, Any]] = []
+    data_files_by_timeframe: dict[str, list[str]] = {}
 
-    for variant in config.variants:
-        print(f"\nTesting SMC variant: {variant}")
-        all_trades: list[dict[str, Any]] = []
-        all_stats: list[dict[str, Any]] = []
-        skip_counts: dict[str, int] = defaultdict(int)
+    for timeframe in timeframes:
+        data_files = discover_data_files_for_timeframe(repo_root, args.markets, timeframe)
+        data_files_by_timeframe[timeframe] = [str(path) for path in data_files]
+        if not data_files:
+            error = f"No *_{timeframe}.csv files found in selected market data folders."
+            print(f"\n{timeframe}: {error}")
+            for variant in config.variants:
+                run_results.append(
+                    {
+                        "timeframe": timeframe,
+                        "variant": variant,
+                        "success": False,
+                        "error": error,
+                        "data_files_count": 0,
+                    }
+                )
+            continue
 
-        for path in data_files:
-            trades, stats = backtest_instrument_variant(path, variant, config, skip_counts)
-            all_trades.extend(trades)
-            all_stats.append(stats)
-            print(
-                f"{variant} {stats['market']}/{stats['instrument']}: "
-                f"{stats['events']} events, {stats['trades']} trades"
+        print(f"\n{timeframe}: found {len(data_files)} files")
+        for variant in config.variants:
+            print(f"Testing {timeframe} / {variant}")
+            variant_trades: list[dict[str, Any]] = []
+            file_stats: list[dict[str, Any]] = []
+            skip_counts: dict[str, int] = defaultdict(int)
+
+            for path in data_files:
+                trades, stats = backtest_instrument_variant(
+                    path,
+                    timeframe,
+                    variant,
+                    config,
+                    skip_counts,
+                )
+                variant_trades.extend(trades)
+                file_stats.append(stats)
+                print(
+                    f"  {stats['market']}/{stats['instrument']}: "
+                    f"{stats['events']} events, {stats['trades']} trades"
+                )
+
+            summary = build_summary(
+                timeframe,
+                variant,
+                variant_trades,
+                file_stats,
+                skip_counts,
+                config,
+            )
+            comparison_rows.append(comparison_row(summary))
+            all_trades.extend(variant_trades)
+            run_results.append(
+                {
+                    "timeframe": timeframe,
+                    "variant": variant,
+                    "success": True,
+                    "data_files_count": len(data_files),
+                    "summary": summary,
+                    "file_stats": file_stats,
+                }
             )
 
-        datewise_rows = base.build_datewise_pnl(all_trades, config.capital)
-        equity_rows = base.build_equity_curve(all_trades, config.capital)
-        market_rows = build_market_metrics(all_trades)
-        instrument_rows = base.build_instrument_metrics(all_trades)
-        best_worst_rows = base.build_best_worst_trades(all_trades, config.top_trade_count)
-        summary = build_summary(variant, all_trades, all_stats, skip_counts, config)
-        summaries[variant] = summary
-        comparison_rows.append(comparison_row(summary))
+            print(
+                f"  {timeframe}/{variant}: "
+                f"trades={summary['total_trades']}, "
+                f"before_brokerage={summary['gross_pnl_before_brokerage']}, "
+                f"charges={summary['brokerage_and_charges']}, "
+                f"after_brokerage={summary['net_pnl_after_brokerage']}, "
+                f"pf={summary['profit_factor']}"
+            )
 
-        variant_outputs = {
-            "trades": output_dir / f"trades_{variant}.csv",
-            "datewise_pnl": output_dir / f"datewise_pnl_{variant}.csv",
-            "equity_curve": output_dir / f"equity_curve_{variant}.csv",
-            "market_metrics": output_dir / f"market_metrics_{variant}.csv",
-            "instrument_metrics": output_dir / f"instrument_metrics_{variant}.csv",
-            "best_worst_trades": output_dir / f"best_worst_trades_{variant}.csv",
-        }
-        base.write_csv(variant_outputs["trades"], all_trades)
-        base.write_csv(variant_outputs["datewise_pnl"], datewise_rows)
-        base.write_csv(variant_outputs["equity_curve"], equity_rows)
-        base.write_csv(variant_outputs["market_metrics"], market_rows)
-        base.write_csv(variant_outputs["instrument_metrics"], instrument_rows)
-        base.write_csv(variant_outputs["best_worst_trades"], best_worst_rows)
-        output_files.extend(variant_outputs.values())
+    if not comparison_rows:
+        raise SystemExit("No backtests ran because no data files were found.")
 
-        print(
-            f"{variant}: trades={summary['total_trades']}, "
-            f"net_pnl={summary['net_pnl']}, "
-            f"costs={summary['total_costs']}, "
-            f"max_dd={summary['max_drawdown_pct']}%, "
-            f"pf={summary['profit_factor']}"
-        )
+    payload = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "strategy": "Smart Money Concepts [LuxAlgo] inspired multi-timeframe backtest",
+        "markets": args.markets,
+        "timeframes": list(timeframes),
+        "variants": list(config.variants),
+        "configuration": json_ready(config.__dict__),
+        "cost_model": base.cost_model_summary(config),
+        "source_pine": str(repo_root / "pine-scripts" / "Smart Money Concepts [LuxAlgo].pine"),
+        "data_files": data_files_by_timeframe,
+        "timeframe_variant_summary": comparison_rows,
+        "best_by_timeframe": build_best_by_timeframe_rows(comparison_rows),
+        "what_traded_by_instrument": build_instrument_rows(all_trades),
+        "brokerage_by_segment": build_charge_rows(all_trades),
+        "direction_exit_summary": build_direction_exit_rows(all_trades),
+        "best_worst_trades": build_best_worst_trade_rows(all_trades, config.top_trade_count),
+        "skipped_signals": build_skip_rows(run_results),
+        "runs": run_results,
+    }
 
-    comparison_path = output_dir / "variant_comparison.csv"
+    comparison_path = output_dir / "timeframe_variant_summary.csv"
     summary_path = output_dir / "summary.json"
-    config_path = output_dir / "run_config.json"
     markdown_path = output_dir / "summary.md"
+    output_files = [markdown_path, summary_path, comparison_path]
 
     base.write_csv(comparison_path, comparison_rows)
-    summary_path.write_text(json.dumps(json_ready(summaries), indent=2), encoding="utf-8")
-    config_path.write_text(
-        json.dumps(
-            {
-                "markets": args.markets,
-                "config": json_ready(config.__dict__),
-                "data_files": [str(path) for path in data_files],
-                "source_pine": str(repo_root / "pine-scripts" / "Smart Money Concepts [LuxAlgo].pine"),
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    output_files.extend([comparison_path, summary_path, config_path, markdown_path])
-    write_summary_markdown(markdown_path, comparison_rows, summaries, config, output_files)
+    if args.write_trade_audit:
+        trade_audit_path = output_dir / "all_trades.csv"
+        base.write_csv(trade_audit_path, all_trades)
+        output_files.append(trade_audit_path)
+
+    payload["output_files"] = [str(path) for path in output_files]
+    summary_path.write_text(json.dumps(json_ready(payload), indent=2), encoding="utf-8")
+    write_summary_markdown(markdown_path, payload, config, output_files)
 
     print("")
     print(f"Results written to: {output_dir}")
-    print("Variant comparison:")
+    print("Timeframe/variant comparison:")
     for row in comparison_rows:
         print(
-            f"  {row['variant']}: "
+            f"  {row['timeframe']}/{row['variant']}: "
             f"events={row['events_tested']}, "
             f"trades={row['total_trades']}, "
-            f"net_pnl={row['net_pnl']}, "
-            f"costs={row['total_costs']}, "
+            f"before_brokerage={row['gross_pnl_before_brokerage']}, "
+            f"charges={row['brokerage_and_charges']}, "
+            f"after_brokerage={row['net_pnl_after_brokerage']}, "
             f"max_dd={row['max_drawdown_pct']}%, "
             f"pf={row['profit_factor']}"
         )

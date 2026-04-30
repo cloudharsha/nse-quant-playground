@@ -1,4 +1,0 @@
-position_sizing_method,total_candidates,total_trades,win_rate_pct,net_pnl,ending_equity,average_profit_loss,max_drawdown,max_drawdown_pct,profit_factor,sharpe_ratio
-fixed_fractional,138,121,30.58,-552910.54,447089.46,-4569.51,-562839.37,-56.2839,0.2142,-21.2086
-volatility_adjusted,138,123,31.71,-546665.3,453334.7,-4444.43,-556737.0,-55.6737,0.2167,-20.9588
-fractional_kelly,138,32,18.75,-195585.87,804414.13,-6112.06,-198593.26,-19.8593,0.2271,-14.8388
