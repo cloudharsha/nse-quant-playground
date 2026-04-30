@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-- **generated_at**: 2026-04-30T11:49:52
+- **generated_at**: 2026-04-30T12:39:57
 - **markets_tested**: equity, derivatives, commodities
 - **timeframes_tested**: 5m, 15m, 30m, 1h
 - **variants_tested**: internal_all, swing_all, combined_all
@@ -21,9 +21,9 @@
 | 15m | internal_all | 20 | 460 | 356 | -194155.29 | 766010.76 | -960166.05 | 35.96 | -96.8075 | 0.3758 | -14.3313 |
 | 15m | swing_all | 20 | 37 | 35 | -24726.29 | 56651.66 | -81377.95 | 37.14 | -8.7253 | 0.1959 | -9.0554 |
 | 15m | combined_all | 20 | 497 | 363 | -179685.76 | 765184.25 | -944870.01 | 36.64 | -95.3065 | 0.3824 | -14.9363 |
-| 30m | internal_all | 20 | 0 | 0 | 0 | 0 | 0 | 0.0 | 0.0 |  |  |
-| 30m | swing_all | 20 | 0 | 0 | 0 | 0 | 0 | 0.0 | 0.0 |  |  |
-| 30m | combined_all | 20 | 0 | 0 | 0 | 0 | 0 | 0.0 | 0.0 |  |  |
+| 30m | internal_all | 20 | 215 | 184 | -133947.07 | 294159.64 | -428106.71 | 35.87 | -42.8107 | 0.3405 | -18.112 |
+| 30m | swing_all | 20 | 9 | 8 | 9416.43 | 1232.35 | 8184.08 | 62.5 | -0.1916 | 5.2695 | 8.9978 |
+| 30m | combined_all | 20 | 224 | 186 | -135079.89 | 294293.33 | -429373.22 | 36.02 | -42.9373 | 0.3384 | -18.3753 |
 | 1h | internal_all | 20 | 60 | 57 | 30430.28 | 16311.51 | 14118.77 | 54.39 | -2.0679 | 1.2025 | 2.1422 |
 | 1h | swing_all | 20 | 0 | 0 | 0 | 0 | 0 | 0.0 | 0.0 |  |  |
 | 1h | combined_all | 20 | 60 | 57 | 30430.28 | 16311.51 | 14118.77 | 54.39 | -2.0679 | 1.2025 | 2.1422 |
@@ -34,7 +34,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 5m | swing_all | 181 | -209692.84 | 245878.09 | -455570.93 | 34.25 | 0.3275 |
 | 15m | swing_all | 35 | -24726.29 | 56651.66 | -81377.95 | 37.14 | 0.1959 |
-| 30m | internal_all | 0 | 0 | 0 | 0 | 0.0 |  |
+| 30m | swing_all | 8 | 9416.43 | 1232.35 | 8184.08 | 62.5 | 5.2695 |
 | 1h | internal_all | 57 | 30430.28 | 16311.51 | 14118.77 | 54.39 | 1.2025 |
 
 ## What Was Traded
@@ -158,6 +158,52 @@
 | 15m | swing_all | equity | RELIANCE_NS | 1 | 1 | 0 | 496.6 | 139.62 | 356.98 | 100.0 |
 | 15m | swing_all | equity | SBIN_NS | 2 | 2 | 0 | -1613.05 | 270.02 | -1883.07 | 50.0 |
 | 15m | swing_all | equity | TCS_NS | 2 | 1 | 1 | 5979.41 | 470.62 | 5508.79 | 100.0 |
+| 30m | combined_all | commodities | CLF | 11 | 7 | 4 | 7586.18 | 37648.28 | -30062.1 | 18.18 |
+| 30m | combined_all | commodities | GCF | 10 | 4 | 6 | 5514.07 | 109576.04 | -104061.97 | 0.0 |
+| 30m | combined_all | commodities | HGF | 11 | 6 | 5 | -87475.66 | 23156.47 | -110632.13 | 0.0 |
+| 30m | combined_all | commodities | NGF | 12 | 7 | 5 | -105578.61 | 12287.01 | -117865.62 | 0.0 |
+| 30m | combined_all | commodities | SIF | 13 | 5 | 8 | -21743.0 | 70010.9 | -91753.9 | 0.0 |
+| 30m | combined_all | derivatives | CNXAUTO | 4 | 4 | 0 | -2103.83 | 1402.28 | -3506.11 | 25.0 |
+| 30m | combined_all | derivatives | CNXFMCG | 6 | 5 | 1 | 33127.44 | 2937.97 | 30189.47 | 83.33 |
+| 30m | combined_all | derivatives | CNXIT | 10 | 5 | 5 | -9956.21 | 3883.11 | -13839.32 | 40.0 |
+| 30m | combined_all | derivatives | NSEBANK | 8 | 3 | 5 | 16770.25 | 4044.82 | 12725.43 | 75.0 |
+| 30m | combined_all | derivatives | NSEI | 8 | 5 | 3 | -7615.05 | 4069.57 | -11684.62 | 37.5 |
+| 30m | combined_all | equity | BHARTIARTL_NS | 12 | 8 | 4 | 8617.17 | 3985.56 | 4631.61 | 41.67 |
+| 30m | combined_all | equity | HDFCBANK_NS | 11 | 5 | 6 | -700.7 | 2999.25 | -3699.95 | 45.45 |
+| 30m | combined_all | equity | ICICIBANK_NS | 9 | 4 | 5 | 6911.68 | 2240.58 | 4671.1 | 66.67 |
+| 30m | combined_all | equity | INFY_NS | 10 | 3 | 7 | 2728.55 | 2353.35 | 375.2 | 50.0 |
+| 30m | combined_all | equity | ITC_NS | 9 | 6 | 3 | -3482.5 | 2780.48 | -6262.98 | 33.33 |
+| 30m | combined_all | equity | KOTAKBANK_NS | 6 | 4 | 2 | -13747.05 | 1213.12 | -14960.17 | 16.67 |
+| 30m | combined_all | equity | LT_NS | 9 | 5 | 4 | -3739.54 | 2529.97 | -6269.51 | 33.33 |
+| 30m | combined_all | equity | RELIANCE_NS | 8 | 4 | 4 | 17798.04 | 2318.31 | 15479.73 | 87.5 |
+| 30m | combined_all | equity | SBIN_NS | 10 | 4 | 6 | 6344.85 | 2858.84 | 3486.01 | 40.0 |
+| 30m | combined_all | equity | TCS_NS | 9 | 5 | 4 | 15664.03 | 1997.42 | 13666.61 | 77.78 |
+| 30m | internal_all | commodities | CLF | 11 | 7 | 4 | 7586.18 | 37648.28 | -30062.1 | 18.18 |
+| 30m | internal_all | commodities | GCF | 10 | 4 | 6 | 5514.07 | 109576.04 | -104061.97 | 0.0 |
+| 30m | internal_all | commodities | HGF | 11 | 6 | 5 | -87475.66 | 23156.47 | -110632.13 | 0.0 |
+| 30m | internal_all | commodities | NGF | 12 | 7 | 5 | -105578.61 | 12287.01 | -117865.62 | 0.0 |
+| 30m | internal_all | commodities | SIF | 13 | 5 | 8 | -21743.0 | 70010.9 | -91753.9 | 0.0 |
+| 30m | internal_all | derivatives | CNXAUTO | 4 | 4 | 0 | -2103.83 | 1402.28 | -3506.11 | 25.0 |
+| 30m | internal_all | derivatives | CNXFMCG | 6 | 5 | 1 | 33127.44 | 2937.97 | 30189.47 | 83.33 |
+| 30m | internal_all | derivatives | CNXIT | 10 | 5 | 5 | -9956.21 | 3883.11 | -13839.32 | 40.0 |
+| 30m | internal_all | derivatives | NSEBANK | 8 | 3 | 5 | 16770.25 | 4044.82 | 12725.43 | 75.0 |
+| 30m | internal_all | derivatives | NSEI | 8 | 5 | 3 | -7615.05 | 4069.57 | -11684.62 | 37.5 |
+| 30m | internal_all | equity | BHARTIARTL_NS | 11 | 7 | 4 | 6472.27 | 3930.96 | 2541.31 | 36.36 |
+| 30m | internal_all | equity | HDFCBANK_NS | 10 | 5 | 5 | -549.69 | 2868.04 | -3417.73 | 50.0 |
+| 30m | internal_all | equity | ICICIBANK_NS | 9 | 4 | 5 | 6911.68 | 2240.58 | 4671.1 | 66.67 |
+| 30m | internal_all | equity | INFY_NS | 10 | 3 | 7 | 2728.55 | 2353.35 | 375.2 | 50.0 |
+| 30m | internal_all | equity | ITC_NS | 9 | 6 | 3 | -2765.0 | 2800.06 | -5565.06 | 33.33 |
+| 30m | internal_all | equity | KOTAKBANK_NS | 6 | 4 | 2 | -13747.05 | 1213.12 | -14960.17 | 16.67 |
+| 30m | internal_all | equity | LT_NS | 9 | 5 | 4 | -3739.54 | 2529.97 | -6269.51 | 33.33 |
+| 30m | internal_all | equity | RELIANCE_NS | 8 | 4 | 4 | 17798.04 | 2318.31 | 15479.73 | 87.5 |
+| 30m | internal_all | equity | SBIN_NS | 10 | 4 | 6 | 6344.85 | 2858.84 | 3486.01 | 40.0 |
+| 30m | internal_all | equity | TCS_NS | 9 | 5 | 4 | 18073.24 | 2029.96 | 16043.28 | 77.78 |
+| 30m | swing_all | derivatives | CNXFMCG | 1 | 1 | 0 | 940.04 | 310.62 | 629.42 | 100.0 |
+| 30m | swing_all | equity | BHARTIARTL_NS | 2 | 1 | 1 | 1299.92 | 311.29 | 988.63 | 50.0 |
+| 30m | swing_all | equity | HDFCBANK_NS | 1 | 0 | 1 | -151.01 | 131.21 | -282.22 | 0.0 |
+| 30m | swing_all | equity | INFY_NS | 1 | 0 | 1 | -884.51 | 112.43 | -996.94 | 0.0 |
+| 30m | swing_all | equity | ITC_NS | 1 | 1 | 0 | 3706.4 | 148.32 | 3558.08 | 100.0 |
+| 30m | swing_all | equity | TCS_NS | 2 | 1 | 1 | 4505.59 | 218.48 | 4287.11 | 100.0 |
 | 1h | combined_all | derivatives | CNXAUTO | 3 | 2 | 1 | -3868.63 | 989.51 | -4858.14 | 33.33 |
 | 1h | combined_all | derivatives | CNXFMCG | 4 | 3 | 1 | 5873.44 | 1554.25 | 4319.19 | 75.0 |
 | 1h | combined_all | derivatives | CNXIT | 3 | 2 | 1 | -2358.73 | 919.78 | -3278.51 | 66.67 |
@@ -211,6 +257,14 @@
 | 15m | swing_all | Commodity futures MCX | 14 | 6031980.36 | 550.2 | 0.0 | 30158.75 | 12667.15 | 2487.7 | 603.2 | 6032.22 | 52499.22 |
 | 15m | swing_all | F&O futures NSE | 6 | 4855891.45 | 240.0 | 1213.05 | 0.0 | 88.86 | 60.07 | 4.84 | 48.6 | 1655.43 |
 | 15m | swing_all | Intraday equity NSE | 15 | 10079110.99 | 600.0 | 1260.91 | 0.0 | 309.42 | 165.51 | 10.07 | 151.08 | 2497.01 |
+| 30m | combined_all | Commodity futures MCX | 57 | 29105362.89 | 2197.68 | 0.0 | 145396.52 | 61121.27 | 11921.3 | 2910.52 | 29131.43 | 252678.7 |
+| 30m | combined_all | F&O futures NSE | 36 | 51745885.58 | 1440.0 | 12942.93 | 0.0 | 946.95 | 438.94 | 51.76 | 517.2 | 16337.75 |
+| 30m | combined_all | Intraday equity NSE | 93 | 117768172.68 | 3720.0 | 14714.77 | 0.0 | 3615.47 | 1341.6 | 117.8 | 1767.25 | 25276.88 |
+| 30m | internal_all | Commodity futures MCX | 57 | 29105362.89 | 2197.68 | 0.0 | 145396.52 | 61121.27 | 11921.3 | 2910.52 | 29131.43 | 252678.7 |
+| 30m | internal_all | F&O futures NSE | 36 | 51745885.58 | 1440.0 | 12942.93 | 0.0 | 946.95 | 438.94 | 51.76 | 517.2 | 16337.75 |
+| 30m | internal_all | Intraday equity NSE | 91 | 117548739.39 | 3640.0 | 14686.93 | 0.0 | 3608.74 | 1325.95 | 117.59 | 1764.0 | 25143.19 |
+| 30m | swing_all | F&O futures NSE | 1 | 930767.87 | 40.0 | 232.93 | 0.0 | 17.03 | 10.43 | 0.93 | 9.3 | 310.62 |
+| 30m | swing_all | Intraday equity NSE | 7 | 3331244.02 | 280.0 | 416.8 | 0.0 | 102.27 | 69.4 | 3.33 | 49.93 | 921.73 |
 | 1h | combined_all | F&O futures NSE | 21 | 24946232.62 | 840.0 | 6229.35 | 0.0 | 456.48 | 237.87 | 24.95 | 249.75 | 8038.43 |
 | 1h | combined_all | Intraday equity NSE | 36 | 37062306.23 | 1440.0 | 4631.42 | 0.0 | 1137.81 | 470.68 | 37.04 | 556.09 | 8273.08 |
 | 1h | internal_all | F&O futures NSE | 21 | 24946232.62 | 840.0 | 6229.35 | 0.0 | 456.48 | 237.87 | 24.95 | 249.75 | 8038.43 |
@@ -259,6 +313,22 @@
 | 15m | internal_all | SHORT | TARGET | 5 | 64787.46 | 31853.96 | 32933.5 |
 | 15m | swing_all | LONG | SESSION_END | 21 | -10224.98 | 37077.74 | -47302.72 |
 | 15m | swing_all | SHORT | SESSION_END | 14 | -14501.31 | 19573.92 | -34075.23 |
+| 30m | combined_all | LONG | OPPOSITE_STRUCTURE | 2 | -6039.09 | 2391.08 | -8430.17 |
+| 30m | combined_all | LONG | SESSION_END | 93 | -106215.19 | 109024.98 | -215240.17 |
+| 30m | combined_all | LONG | STOP_LOSS | 2 | -15704.53 | 1006.81 | -16711.34 |
+| 30m | combined_all | LONG | TARGET | 2 | 35222.01 | 8674.28 | 26547.73 |
+| 30m | combined_all | SHORT | SESSION_END | 83 | -29358.2 | 143074.43 | -172432.63 |
+| 30m | combined_all | SHORT | STOP_LOSS | 3 | -25481.67 | 13114.35 | -38596.02 |
+| 30m | combined_all | SHORT | TARGET | 1 | 12496.78 | 17007.4 | -4510.62 |
+| 30m | internal_all | LONG | OPPOSITE_STRUCTURE | 2 | -6039.09 | 2391.08 | -8430.17 |
+| 30m | internal_all | LONG | SESSION_END | 92 | -107270.8 | 108897.79 | -216168.59 |
+| 30m | internal_all | LONG | STOP_LOSS | 2 | -15704.53 | 1006.81 | -16711.34 |
+| 30m | internal_all | LONG | TARGET | 2 | 35222.01 | 8674.28 | 26547.73 |
+| 30m | internal_all | SHORT | SESSION_END | 82 | -27169.77 | 143067.93 | -170237.7 |
+| 30m | internal_all | SHORT | STOP_LOSS | 3 | -25481.67 | 13114.35 | -38596.02 |
+| 30m | internal_all | SHORT | TARGET | 1 | 12496.78 | 17007.4 | -4510.62 |
+| 30m | swing_all | LONG | SESSION_END | 4 | 6740.74 | 720.48 | 6020.26 |
+| 30m | swing_all | SHORT | SESSION_END | 4 | 2675.69 | 511.87 | 2163.82 |
 | 1h | combined_all | LONG | SESSION_END | 27 | 11372.89 | 7436.24 | 3936.65 |
 | 1h | combined_all | LONG | STOP_LOSS | 2 | -16003.65 | 964.61 | -16968.26 |
 | 1h | combined_all | SHORT | SESSION_END | 28 | 35061.04 | 7910.66 | 27150.38 |
@@ -308,6 +378,15 @@
 - **commodities_slippage**: 0.2
 - **pnl_basis**: Net P&L after segment-wise brokerage/charges and fixed slippage
 
+## Timeframe Session Policy
+
+| Timeframe | Session Start | Exit Time | Require Session Open | Note |
+| --- | --- | --- | --- | --- |
+| 5m | 09:15 | 15:20 | True | Uses configured session-open rule. |
+| 15m | 09:15 | 15:20 | True | Uses configured session-open rule. |
+| 30m | 09:15 | 15:20 | False | 30m Yahoo candles are aligned to 09:00/09:30, so the first available session candle is accepted. |
+| 1h | 09:15 | 15:20 | True | Uses configured session-open rule. |
+
 ## Backtest Rules
 
 - Structure events are based on the LuxAlgo SMC BOS/CHoCH alert logic.
@@ -336,6 +415,9 @@
 | 15m | internal_all | signal_without_next_session_bar | 7 |
 | 15m | swing_all | signal_without_next_session_bar | 2 |
 | 15m | combined_all | signal_without_next_session_bar | 7 |
+| 30m | internal_all | signal_without_next_session_bar | 9 |
+| 30m | swing_all | signal_without_next_session_bar | 1 |
+| 30m | combined_all | signal_without_next_session_bar | 9 |
 | 1h | internal_all | signal_without_next_session_bar | 3 |
 | 1h | combined_all | signal_without_next_session_bar | 3 |
 

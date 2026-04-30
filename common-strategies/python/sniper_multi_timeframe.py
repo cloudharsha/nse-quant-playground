@@ -13,6 +13,7 @@ import argparse
 import json
 import statistics
 from collections import defaultdict
+from dataclasses import replace
 from datetime import datetime, time
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,7 @@ import sniper_entry_exit_5m_strategy as sniper
 
 DEFAULT_TIMEFRAMES = ("5m", "15m", "30m", "1h")
 DEFAULT_MARKETS = ("derivatives", "equity", "commodities", "usdinr")
+AUTO_ALLOW_MISSING_SESSION_OPEN_TIMEFRAMES = frozenset({"30m"})
 TIMEFRAME_ALIASES = {
     "5": "5m",
     "5m": "5m",
@@ -71,6 +73,43 @@ def timeframe_sort_key(timeframe: str) -> tuple[int, str]:
         return DEFAULT_TIMEFRAMES.index(timeframe), timeframe
     except ValueError:
         return len(DEFAULT_TIMEFRAMES), timeframe
+
+
+def config_for_timeframe(config: sniper.SniperConfig, timeframe: str) -> sniper.SniperConfig:
+    if timeframe in AUTO_ALLOW_MISSING_SESSION_OPEN_TIMEFRAMES and config.require_session_open:
+        return replace(config, require_session_open=False)
+    return config
+
+
+def build_timeframe_session_policy(
+    timeframes: tuple[str, ...],
+    base_config: sniper.SniperConfig,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for timeframe in timeframes:
+        timeframe_config = config_for_timeframe(base_config, timeframe)
+        rows.append(
+            {
+                "timeframe": timeframe,
+                "session_start": (
+                    timeframe_config.session_start.strftime("%H:%M")
+                    if timeframe_config.session_start
+                    else ""
+                ),
+                "exit_time": (
+                    timeframe_config.exit_time.strftime("%H:%M")
+                    if timeframe_config.exit_time
+                    else ""
+                ),
+                "require_session_open": timeframe_config.require_session_open,
+                "note": (
+                    "30m Yahoo candles are aligned to 09:00/09:30, so the first available session candle is accepted."
+                    if timeframe_config.require_session_open != base_config.require_session_open
+                    else "Uses configured session-open rule."
+                ),
+            }
+        )
+    return rows
 
 
 def parse_args() -> argparse.Namespace:
@@ -783,6 +822,19 @@ def build_summary_markdown(payload: dict[str, Any], config: sniper.SniperConfig)
     for key, value in base.cost_model_summary(config).items():
         lines.append(f"- **{key}**: {value}")
 
+    lines.extend(["", "## Timeframe Session Policy", ""])
+    append_markdown_table(
+        lines,
+        payload.get("timeframe_session_policy", []),
+        [
+            ("Timeframe", "timeframe"),
+            ("Session Start", "session_start"),
+            ("Exit Time", "exit_time"),
+            ("Require Session Open", "require_session_open"),
+            ("Note", "note"),
+        ],
+    )
+
     lines.extend(
         [
             "",
@@ -926,6 +978,7 @@ def main() -> None:
     data_files_by_timeframe: dict[str, list[str]] = {}
 
     for timeframe in timeframes:
+        timeframe_config = config_for_timeframe(config, timeframe)
         data_files = discover_data_files_for_timeframe(repo_root, args.markets, timeframe)
         data_files_by_timeframe[timeframe] = [str(path) for path in data_files]
         if not data_files:
@@ -944,10 +997,12 @@ def main() -> None:
             continue
 
         print(f"\n{timeframe}: found {len(data_files)} files")
+        if timeframe_config.require_session_open != config.require_session_open:
+            print(f"{timeframe}: accepting first available session candle for this timeframe")
         timeframe_trades, timeframe_rows, timeframe_results = run_timeframe(
             timeframe,
             data_files,
-            config,
+            timeframe_config,
         )
         all_trades.extend(timeframe_trades)
         comparison_rows.extend(timeframe_rows)
@@ -964,6 +1019,7 @@ def main() -> None:
         "timeframes": list(timeframes),
         "target_levels": list(config.target_levels),
         "configuration": json_ready(config.__dict__),
+        "timeframe_session_policy": build_timeframe_session_policy(timeframes, config),
         "cost_model": base.cost_model_summary(config),
         "data_files": data_files_by_timeframe,
         "timeframe_target_summary": comparison_rows,
