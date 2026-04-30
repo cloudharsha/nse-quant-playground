@@ -224,11 +224,15 @@ sniper_results = pd.read_csv('../common-strategies/results/sniper_multi_timefram
 - Includes segment-wise tax and charges for NSE and MCX
 - Used as default cost model in backtesting strategies
 
-### Default Stocks
+### Default Instruments
 
+**Equity:**
 Initial data collection focuses on major NSE stocks:
 - RELIANCE.NS, TCS.NS, HDFCBANK.NS, INFY.NS, ICICIBANK.NS
 - SBIN.NS, BHARTIARTL.NS, ITC.NS, KOTAKBANK.NS, LT.NS
+
+**Currency:**
+- USD/INR currency pair with multiple timeframe data (5m, 15m, 30m, 1h)
 
 ### Next Steps
 
@@ -236,11 +240,16 @@ Initial data collection focuses on major NSE stocks:
 2. ✅ Implement technical indicator calculations
 3. ✅ Develop trading strategies
 4. ✅ Run backtests
-5. 🔄 Analyze performance and optimize
-6. 🔄 Implement risk management
-7. 🔄 Expand to commodities and derivatives strategies
-8. 🔄 Develop portfolio management and position sizing
-9. 🔄 Create real-time trading integration
+5. ✅ Add USD/INR currency pair data
+6. ✅ Implement multi-timeframe strategies
+7. ✅ Add smart money concepts strategy
+8. ✅ Create TradingView Pine Script indicators
+9. ✅ Implement brokerage cost calculations
+10. 🔄 Analyze performance and optimize
+11. 🔄 Implement advanced risk management
+12. 🔄 Expand to commodities and derivatives strategies
+13. 🔄 Develop portfolio management and position sizing
+14. 🔄 Create real-time trading integration
 
 ## Project Philosophy
 
