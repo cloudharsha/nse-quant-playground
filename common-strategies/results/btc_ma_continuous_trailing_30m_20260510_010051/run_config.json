@@ -1,0 +1,54 @@
+{
+  "args": {
+    "spot_file": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data/BTCUSD_data_30m.csv",
+    "results_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/common-strategies/results",
+    "run_name": "btc_ma_continuous_trailing_30m_20260510_010051",
+    "initial_start_time": "00:00",
+    "ma_period": 48,
+    "start_date": "",
+    "end_date": ""
+  },
+  "resolved_paths": {
+    "spot_file": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data/BTCUSD_data_30m.csv",
+    "results_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/common-strategies/results",
+    "output_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/common-strategies/results/btc_ma_continuous_trailing_30m_20260510_010051",
+    "common_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/common-strategies"
+  },
+  "expected_candle_interval": "30m",
+  "timezone": "UTC",
+  "gap_policy": "force_exit_before_gap_and_resume_after_first_post_gap_candle",
+  "file_row_counts": {
+    "total_source_rows": 17446,
+    "filtered_rows": 17446,
+    "processed_rows": 17446
+  },
+  "first_csv_timestamp": "2025-05-10 19:30:00+00:00",
+  "first_ma_usable_timestamp": "2025-05-11 19:00:00+00:00",
+  "activation_timestamp": "2025-05-10 19:30:00+00:00",
+  "detected_gaps": [
+    {
+      "event_id": "G0001",
+      "report_date": "2025-10-25",
+      "gap_start_timestamp": "2025-10-25 14:30:00+00:00",
+      "gap_resume_timestamp": "2025-10-25 21:00:00+00:00",
+      "missing_candles": "12",
+      "had_active_trade": "YES",
+      "forced_exit_trade_id": "T01196",
+      "pre_gap_close_points": "111605.64",
+      "pre_gap_ma": "111156.88",
+      "remarks": "Missing 12 candle(s) between 2025-10-25 14:30:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row."
+    },
+    {
+      "event_id": "G0002",
+      "report_date": "2026-05-08",
+      "gap_start_timestamp": "2026-05-08 01:00:00+00:00",
+      "gap_resume_timestamp": "2026-05-08 08:00:00+00:00",
+      "missing_candles": "13",
+      "had_active_trade": "YES",
+      "forced_exit_trade_id": "T02549",
+      "pre_gap_close_points": "79593.10",
+      "pre_gap_ma": "80524.01",
+      "remarks": "Missing 13 candle(s) between 2026-05-08 01:00:00+00:00 and 2026-05-08 08:00:00+00:00; resumed on next available row."
+    }
+  ]
+}

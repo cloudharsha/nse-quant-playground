@@ -1,0 +1,3 @@
+event_id,report_date,gap_start_timestamp,gap_resume_timestamp,missing_candles,had_active_trade,forced_exit_trade_id,pre_gap_close_points,pre_gap_ma,remarks
+G0001,2025-10-25,2025-10-25 14:30:00+00:00,2025-10-25 21:00:00+00:00,12,YES,T01196,111605.64,111156.88,Missing 12 candle(s) between 2025-10-25 14:30:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row.
+G0002,2026-05-08,2026-05-08 01:00:00+00:00,2026-05-08 08:00:00+00:00,13,YES,T02549,79593.10,80524.01,Missing 13 candle(s) between 2026-05-08 01:00:00+00:00 and 2026-05-08 08:00:00+00:00; resumed on next available row.
