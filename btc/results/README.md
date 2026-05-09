@@ -1,48 +1,53 @@
 # BTC Results Directory
 
-This directory contains results, analysis outputs, and performance metrics from
-BTC trading strategies and backtests.
+This directory contains BTC-specific backtest results, analysis outputs, and
+performance metrics.
 
-## Directory Structure
+## Current Backtest Layout
 
-Results will be organized as follows:
+BTC backtests now write timestamped run folders directly into this directory.
+
+Example:
 
 ```text
 results/
-├── backtests/
-├── analysis/
-├── strategies/
-├── visualizations/
-└── reports/
+└── btc_ma_continuous_multi_timeframe_20260510_020000/
+    ├── timeframe_summary.csv
+    ├── summary.json
+    ├── summary.md
+    ├── run_config.json
+    ├── 15m_ma96/
+    ├── 30m_ma48/
+    └── 1h_ma24/
 ```
+
+Each timeframe subdirectory contains:
+
+- `trades.csv`
+- `gap_events.csv`
+- `daywise_summary.csv`
+- `monthly_summary.csv`
+- `yearly_summary.csv`
+- `summary.json`
+- `summary.md`
+- `backtest.log`
 
 ## Types of Results
 
-- Backtesting results
-- Statistical analysis outputs
-- Strategy performance reports
-- Visualizations and charts
-- Summary reports
+- Per-timeframe trade logs
+- Gap-event logs
+- Daywise, monthly, and yearly summary CSVs
+- Run configuration snapshots
+- Machine-readable JSON summaries
+- Human-readable Markdown summaries
 
-## File Naming Conventions
+## Notes
 
-### Backtest Results
-
-`{strategy_name}_btc_{date}_backtest.csv`
-
-### Analysis Reports
-
-`{analysis_type}_btc_{date}.csv`
-
-### Visualizations
-
-`{chart_type}_{strategy}_btc_{date}.png`
-
-### Summary Reports
-
-`{report_type}_{date}.md`
+- BTC-local backtests are written here from `btc/python/`
+- The preferred BTC workflow is now `btc/python` + `btc/results`
+- Earlier BTC experiments under `common-strategies/results` are legacy outputs and are not used by the BTC-local multi-timeframe runner
 
 ## Current Status
 
-This directory is currently empty. It will be populated as BTC-specific
-strategies and analyses are added to the repo.
+This directory is expected to contain multiple timestamped BTC run folders over
+time as strategies are tested and compared.

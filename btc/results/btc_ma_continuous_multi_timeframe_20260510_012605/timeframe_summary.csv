@@ -1,0 +1,4 @@
+timeframe,ma_period,input_file,tested_start_date,tested_end_date,first_csv_timestamp,first_ma_usable_timestamp,activation_timestamp,gap_events,missing_candles_total,total_trades,long_trades,short_trades,winning_trades,losing_trades,win_rate_pct,total_points,average_points,max_drawdown_points
+15m,96,btc/data/BTCUSD_data_15m.csv,2025-05-10,2026-05-09,2025-05-10 07:15:00+00:00,2025-05-11 07:00:00+00:00,2025-05-10 07:15:00+00:00,2,48,3590,1838,1752,375,3215,10.45,37528.18,10.45,17745.14
+30m,48,btc/data/BTCUSD_data_30m.csv,2025-05-10,2026-05-09,2025-05-10 19:30:00+00:00,2025-05-11 19:00:00+00:00,2025-05-10 19:30:00+00:00,2,25,2561,1322,1239,313,2248,12.22,39496.32,15.42,15484.10
+1h,24,btc/data/BTCUSD_data_1h.csv,2025-05-11,2026-05-09,2025-05-11 20:00:00+00:00,2025-05-12 19:00:00+00:00,2025-05-11 20:00:00+00:00,2,13,1825,948,877,257,1568,14.08,26289.22,14.41,17209.11
