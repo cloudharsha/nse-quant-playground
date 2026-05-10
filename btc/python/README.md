@@ -158,3 +158,124 @@ python btc_ma_continuous_trailing_multi_timeframe_capital.py --initial-start-tim
 - Keeps trade and gap parity with the point-based BTC MA backtest
 - Uses fixed-notional sizing, not compounding position sizing
 - Assumes no brokerage, slippage, or borrow costs
+
+### `btc_ma_target_trailing_multi_timeframe_capital.py`
+
+Runs a BTC multi-timeframe MA strategy with fixed-notional capital, a trailing
+MA stop, and a fixed `2R` target from the initial entry-to-stop distance.
+
+#### Features
+
+- **Fixed-notional capital model**: uses `$1,000,000` notional per trade by default
+- **Multiple timeframe tests in one run**:
+  - `15m` with `MA 96`
+  - `30m` with `MA 48`
+  - `1h` with `MA 24`
+- **Entry gap filter**: only enters when the close is within `0.5%` of the moving average
+- **Target + trailing stop**: target is fixed at `2R`, while the stop continues to trail with the MA
+- **Conservative intrabar handling**: if stop and target are both touched in the same candle, the stop is assumed first
+- **Capital reporting**: writes points, USD P&L, equity, drawdown, and equity-curve outputs
+
+#### Usage
+
+```bash
+cd btc/python
+python btc_ma_target_trailing_multi_timeframe_capital.py
+```
+
+Optional examples:
+
+```bash
+# Run only 30m and 1h
+python btc_ma_target_trailing_multi_timeframe_capital.py --timeframes 30m 1h
+
+# Start evaluation from 14:30 UTC on the first candidate date
+python btc_ma_target_trailing_multi_timeframe_capital.py --initial-start-time 14:30
+```
+
+#### Output
+
+- Run folders are created in `../results/`
+- Default run names look like `btc_ma_target_trailing_multi_timeframe_capital_YYYYMMDD_HHMMSS`
+- Each tested timeframe gets its own subdirectory such as:
+  - `15m_ma96/`
+  - `30m_ma48/`
+  - `1h_ma24/`
+- Each timeframe writes:
+  - `trades.csv`
+  - `gap_events.csv`
+  - `daywise_summary.csv`
+  - `monthly_summary.csv`
+  - `yearly_summary.csv`
+  - `equity_curve.csv`
+  - `summary.json`
+  - `summary.md`
+  - `backtest.log`
+
+#### Notes
+
+- Uses the existing BTC CSVs from `../data/`
+- Keeps the same fixed-capital accounting shape as the BTC capital script
+- Same-candle reversal after a target is allowed only if the signal flips and the entry gap filter passes
+- Assumes no brokerage, slippage, or borrow costs
+
+### `btc_ma_target_trailing_multi_timeframe_capital_multi_reward.py`
+
+Runs the same BTC target + trailing MA stop strategy as the `2R` script, but
+tests multiple reward multiples in one run and writes a combined comparison
+summary.
+
+#### Features
+
+- **Fixed-notional capital model**: uses `$1,000,000` notional per trade by default
+- **Multiple timeframe tests in one run**:
+  - `15m` with `MA 96`
+  - `30m` with `MA 48`
+  - `1h` with `MA 24`
+- **Multiple reward targets**: defaults to testing `3R`, `4R`, and `5R` in a single run
+- **Entry gap filter**: only enters when the close is within `0.5%` of the moving average
+- **Target + trailing stop**: target is fixed per selected reward multiple, while the stop continues to trail with the MA
+- **Combined comparison export**: writes both `timeframe_summary.csv` and `timeframe_target_summary.csv` at the run root
+
+#### Usage
+
+```bash
+cd btc/python
+python btc_ma_target_trailing_multi_timeframe_capital_multi_reward.py
+```
+
+Optional examples:
+
+```bash
+# Test only 3R and 5R on the 1h timeframe
+python btc_ma_target_trailing_multi_timeframe_capital_multi_reward.py --timeframes 1h --target-levels 3 5
+
+# Start evaluation from 14:30 UTC on the first candidate date
+python btc_ma_target_trailing_multi_timeframe_capital_multi_reward.py --initial-start-time 14:30
+```
+
+#### Output
+
+- Run folders are created in `../results/`
+- Default run names look like `btc_ma_target_trailing_multi_timeframe_capital_multi_reward_YYYYMMDD_HHMMSS`
+- Each timeframe/target combination gets its own subdirectory such as:
+  - `15m_ma96_rr3/`
+  - `30m_ma48_rr4/`
+  - `1h_ma24_rr5/`
+- Each timeframe/target folder writes:
+  - `trades.csv`
+  - `gap_events.csv`
+  - `daywise_summary.csv`
+  - `monthly_summary.csv`
+  - `yearly_summary.csv`
+  - `equity_curve.csv`
+  - `summary.json`
+  - `summary.md`
+  - `backtest.log`
+
+#### Notes
+
+- Uses the existing BTC CSVs from `../data/`
+- Keeps the same fixed-capital accounting shape as the BTC capital scripts
+- Same-candle stop/target ambiguity is handled with the conservative `stop_first` rule
+- Assumes no brokerage, slippage, or borrow costs

@@ -1,0 +1,9 @@
+event_id,report_date,gap_start_timestamp,gap_resume_timestamp,missing_candles,had_active_trade,forced_exit_trade_id,pre_gap_close_points,pre_gap_ma,remarks
+G0001,2021-11-24,2021-11-23 23:30:00+00:00,2021-11-24 01:00:00+00:00,2,NO,,57566.85,56953.59,Missing 2 candle(s) between 2021-11-23 23:30:00+00:00 and 2021-11-24 01:00:00+00:00; resumed on next available row.
+G0002,2023-03-04,2023-03-04 16:30:00+00:00,2023-03-04 21:30:00+00:00,9,YES,T05379,22330.27,22347.82,Missing 9 candle(s) between 2023-03-04 16:30:00+00:00 and 2023-03-04 21:30:00+00:00; resumed on next available row.
+G0003,2023-05-19,2023-05-19 07:00:00+00:00,2023-05-19 08:30:00+00:00,2,YES,T05978,26899.16,27000.42,Missing 2 candle(s) between 2023-05-19 07:00:00+00:00 and 2023-05-19 08:30:00+00:00; resumed on next available row.
+G0004,2024-02-09,2024-02-09 21:00:00+00:00,2024-02-09 22:00:00+00:00,1,NO,,47426.21,46588.31,Missing 1 candle(s) between 2024-02-09 21:00:00+00:00 and 2024-02-09 22:00:00+00:00; resumed on next available row.
+G0005,2024-05-31,2024-05-31 21:30:00+00:00,2024-05-31 23:30:00+00:00,3,NO,,67488.42,68024.40,Missing 3 candle(s) between 2024-05-31 21:30:00+00:00 and 2024-05-31 23:30:00+00:00; resumed on next available row.
+G0006,2024-10-26,2024-10-26 15:30:00+00:00,2024-10-26 17:30:00+00:00,3,YES,T10562,66795.54,66899.73,Missing 3 candle(s) between 2024-10-26 15:30:00+00:00 and 2024-10-26 17:30:00+00:00; resumed on next available row.
+G0007,2025-10-25,2025-10-25 14:30:00+00:00,2025-10-25 21:00:00+00:00,12,YES,T13591,111605.64,111156.88,Missing 12 candle(s) between 2025-10-25 14:30:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row.
+G0008,2026-05-08,2026-05-08 01:00:00+00:00,2026-05-08 08:00:00+00:00,13,NO,,79593.10,80524.01,Missing 13 candle(s) between 2026-05-08 01:00:00+00:00 and 2026-05-08 08:00:00+00:00; resumed on next available row.

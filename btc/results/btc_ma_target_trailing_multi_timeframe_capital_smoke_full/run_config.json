@@ -1,0 +1,375 @@
+{
+  "args": {
+    "data_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data",
+    "results_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results",
+    "run_name": "btc_ma_target_trailing_multi_timeframe_capital_smoke_full",
+    "initial_start_time": "00:00",
+    "start_date": "",
+    "end_date": "",
+    "timeframes": [
+      "15m",
+      "30m",
+      "1h"
+    ],
+    "capital": 1000000.0
+  },
+  "resolved_paths": {
+    "repo_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground",
+    "data_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data",
+    "results_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results",
+    "output_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results/btc_ma_target_trailing_multi_timeframe_capital_smoke_full"
+  },
+  "timezone": "UTC",
+  "capital_mode": "fixed_notional_per_trade",
+  "cost_model": "none",
+  "short_mode": "enabled_symmetric_1x",
+  "target_risk_reward": 2.0,
+  "max_entry_gap_pct": 0.5,
+  "ambiguous_policy": "stop_first",
+  "entry_rule": "close_above_ma_long_close_below_ma_short_and_entry_requires_close_within_0.5pct_of_ma",
+  "target_rule": "fixed_2r_from_entry_to_initial_ma_stop_with_trailing_ma_stop",
+  "post_target_reentry_rule": "block_same_direction_same_candle_reentry_after_target_allow_same_candle_reversal_if_signal_flips",
+  "gap_policy": "force_exit_before_gap_and_resume_after_first_post_gap_candle",
+  "selected_timeframes": [
+    "15m",
+    "30m",
+    "1h"
+  ],
+  "timeframe_configuration": {
+    "15m": {
+      "input_file": "btc/data/BTCUSD_data_15m.csv",
+      "ma_period": 96,
+      "step_minutes": 15
+    },
+    "30m": {
+      "input_file": "btc/data/BTCUSD_data_30m.csv",
+      "ma_period": 48,
+      "step_minutes": 30
+    },
+    "1h": {
+      "input_file": "btc/data/BTCUSD_data_1h.csv",
+      "ma_period": 24,
+      "step_minutes": 60
+    }
+  },
+  "per_timeframe_metadata": {
+    "15m": {
+      "first_csv_timestamp": "2021-05-11 19:00:00+00:00",
+      "first_ma_usable_timestamp": "2021-05-12 18:45:00+00:00",
+      "activation_timestamp": "2021-05-11 19:00:00+00:00",
+      "total_source_rows": 175072,
+      "filtered_rows": 175072,
+      "processed_rows": 175072,
+      "detected_gaps": [
+        {
+          "event_id": "G0001",
+          "report_date": "2021-11-24",
+          "gap_start_timestamp": "2021-11-24 00:00:00+00:00",
+          "gap_resume_timestamp": "2021-11-24 00:45:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "57599.99",
+          "pre_gap_ma": "56943.84",
+          "remarks": "Missing 2 candle(s) between 2021-11-24 00:00:00+00:00 and 2021-11-24 00:45:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0002",
+          "report_date": "2023-03-04",
+          "gap_start_timestamp": "2023-03-04 16:45:00+00:00",
+          "gap_resume_timestamp": "2023-03-04 21:30:00+00:00",
+          "missing_candles": "18",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T08676",
+          "pre_gap_close_points": "22330.27",
+          "pre_gap_ma": "22347.21",
+          "remarks": "Missing 18 candle(s) between 2023-03-04 16:45:00+00:00 and 2023-03-04 21:30:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0003",
+          "report_date": "2023-05-19",
+          "gap_start_timestamp": "2023-05-19 07:30:00+00:00",
+          "gap_resume_timestamp": "2023-05-19 08:15:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T09634",
+          "pre_gap_close_points": "26863.85",
+          "pre_gap_ma": "27000.20",
+          "remarks": "Missing 2 candle(s) between 2023-05-19 07:30:00+00:00 and 2023-05-19 08:15:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0004",
+          "report_date": "2024-02-09",
+          "gap_start_timestamp": "2024-02-09 21:30:00+00:00",
+          "gap_resume_timestamp": "2024-02-09 22:00:00+00:00",
+          "missing_candles": "1",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "47419.09",
+          "pre_gap_ma": "46606.86",
+          "remarks": "Missing 1 candle(s) between 2024-02-09 21:30:00+00:00 and 2024-02-09 22:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0005",
+          "report_date": "2024-05-31",
+          "gap_start_timestamp": "2024-05-31 22:00:00+00:00",
+          "gap_resume_timestamp": "2024-05-31 23:15:00+00:00",
+          "missing_candles": "4",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "67542.93",
+          "pre_gap_ma": "68026.44",
+          "remarks": "Missing 4 candle(s) between 2024-05-31 22:00:00+00:00 and 2024-05-31 23:15:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0006",
+          "report_date": "2024-10-26",
+          "gap_start_timestamp": "2024-10-26 16:00:00+00:00",
+          "gap_resume_timestamp": "2024-10-26 17:15:00+00:00",
+          "missing_candles": "4",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T16844",
+          "pre_gap_close_points": "66818.88",
+          "pre_gap_ma": "66893.46",
+          "remarks": "Missing 4 candle(s) between 2024-10-26 16:00:00+00:00 and 2024-10-26 17:15:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0007",
+          "report_date": "2025-10-25",
+          "gap_start_timestamp": "2025-10-25 15:00:00+00:00",
+          "gap_resume_timestamp": "2025-10-25 21:00:00+00:00",
+          "missing_candles": "23",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T21732",
+          "pre_gap_close_points": "111466.20",
+          "pre_gap_ma": "111142.44",
+          "remarks": "Missing 23 candle(s) between 2025-10-25 15:00:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0008",
+          "report_date": "2026-05-08",
+          "gap_start_timestamp": "2026-05-08 01:15:00+00:00",
+          "gap_resume_timestamp": "2026-05-08 07:45:00+00:00",
+          "missing_candles": "25",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "79593.10",
+          "pre_gap_ma": "80537.91",
+          "remarks": "Missing 25 candle(s) between 2026-05-08 01:15:00+00:00 and 2026-05-08 07:45:00+00:00; resumed on next available row."
+        }
+      ]
+    },
+    "30m": {
+      "first_csv_timestamp": "2021-05-12 07:30:00+00:00",
+      "first_ma_usable_timestamp": "2021-05-13 07:00:00+00:00",
+      "activation_timestamp": "2021-05-12 07:30:00+00:00",
+      "total_source_rows": 87505,
+      "filtered_rows": 87505,
+      "processed_rows": 87505,
+      "detected_gaps": [
+        {
+          "event_id": "G0001",
+          "report_date": "2021-11-24",
+          "gap_start_timestamp": "2021-11-23 23:30:00+00:00",
+          "gap_resume_timestamp": "2021-11-24 01:00:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "57566.85",
+          "pre_gap_ma": "56953.59",
+          "remarks": "Missing 2 candle(s) between 2021-11-23 23:30:00+00:00 and 2021-11-24 01:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0002",
+          "report_date": "2023-03-04",
+          "gap_start_timestamp": "2023-03-04 16:30:00+00:00",
+          "gap_resume_timestamp": "2023-03-04 21:30:00+00:00",
+          "missing_candles": "9",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T05723",
+          "pre_gap_close_points": "22330.27",
+          "pre_gap_ma": "22347.82",
+          "remarks": "Missing 9 candle(s) between 2023-03-04 16:30:00+00:00 and 2023-03-04 21:30:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0003",
+          "report_date": "2023-05-19",
+          "gap_start_timestamp": "2023-05-19 07:00:00+00:00",
+          "gap_resume_timestamp": "2023-05-19 08:30:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T06373",
+          "pre_gap_close_points": "26899.16",
+          "pre_gap_ma": "27000.42",
+          "remarks": "Missing 2 candle(s) between 2023-05-19 07:00:00+00:00 and 2023-05-19 08:30:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0004",
+          "report_date": "2024-02-09",
+          "gap_start_timestamp": "2024-02-09 21:00:00+00:00",
+          "gap_resume_timestamp": "2024-02-09 22:00:00+00:00",
+          "missing_candles": "1",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "47426.21",
+          "pre_gap_ma": "46588.31",
+          "remarks": "Missing 1 candle(s) between 2024-02-09 21:00:00+00:00 and 2024-02-09 22:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0005",
+          "report_date": "2024-05-31",
+          "gap_start_timestamp": "2024-05-31 21:30:00+00:00",
+          "gap_resume_timestamp": "2024-05-31 23:30:00+00:00",
+          "missing_candles": "3",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "67488.42",
+          "pre_gap_ma": "68024.40",
+          "remarks": "Missing 3 candle(s) between 2024-05-31 21:30:00+00:00 and 2024-05-31 23:30:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0006",
+          "report_date": "2024-10-26",
+          "gap_start_timestamp": "2024-10-26 15:30:00+00:00",
+          "gap_resume_timestamp": "2024-10-26 17:30:00+00:00",
+          "missing_candles": "3",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T11341",
+          "pre_gap_close_points": "66795.54",
+          "pre_gap_ma": "66899.73",
+          "remarks": "Missing 3 candle(s) between 2024-10-26 15:30:00+00:00 and 2024-10-26 17:30:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0007",
+          "report_date": "2025-10-25",
+          "gap_start_timestamp": "2025-10-25 14:30:00+00:00",
+          "gap_resume_timestamp": "2025-10-25 21:00:00+00:00",
+          "missing_candles": "12",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T14643",
+          "pre_gap_close_points": "111605.64",
+          "pre_gap_ma": "111156.88",
+          "remarks": "Missing 12 candle(s) between 2025-10-25 14:30:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0008",
+          "report_date": "2026-05-08",
+          "gap_start_timestamp": "2026-05-08 01:00:00+00:00",
+          "gap_resume_timestamp": "2026-05-08 08:00:00+00:00",
+          "missing_candles": "13",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "79593.10",
+          "pre_gap_ma": "80524.01",
+          "remarks": "Missing 13 candle(s) between 2026-05-08 01:00:00+00:00 and 2026-05-08 08:00:00+00:00; resumed on next available row."
+        }
+      ]
+    },
+    "1h": {
+      "first_csv_timestamp": "2021-05-13 08:00:00+00:00",
+      "first_ma_usable_timestamp": "2021-05-14 07:00:00+00:00",
+      "activation_timestamp": "2021-05-13 08:00:00+00:00",
+      "total_source_rows": 43724,
+      "filtered_rows": 43724,
+      "processed_rows": 43724,
+      "detected_gaps": [
+        {
+          "event_id": "G0001",
+          "report_date": "2021-11-24",
+          "gap_start_timestamp": "2021-11-23 23:00:00+00:00",
+          "gap_resume_timestamp": "2021-11-24 01:00:00+00:00",
+          "missing_candles": "1",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "57566.85",
+          "pre_gap_ma": "56957.77",
+          "remarks": "Missing 1 candle(s) between 2021-11-23 23:00:00+00:00 and 2021-11-24 01:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0002",
+          "report_date": "2023-03-04",
+          "gap_start_timestamp": "2023-03-04 16:00:00+00:00",
+          "gap_resume_timestamp": "2023-03-04 22:00:00+00:00",
+          "missing_candles": "5",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T03670",
+          "pre_gap_close_points": "22330.27",
+          "pre_gap_ma": "22344.15",
+          "remarks": "Missing 5 candle(s) between 2023-03-04 16:00:00+00:00 and 2023-03-04 22:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0003",
+          "report_date": "2023-05-19",
+          "gap_start_timestamp": "2023-05-19 06:00:00+00:00",
+          "gap_resume_timestamp": "2023-05-19 09:00:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T04101",
+          "pre_gap_close_points": "26909.31",
+          "pre_gap_ma": "27001.66",
+          "remarks": "Missing 2 candle(s) between 2023-05-19 06:00:00+00:00 and 2023-05-19 09:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0004",
+          "report_date": "2024-02-09",
+          "gap_start_timestamp": "2024-02-09 20:00:00+00:00",
+          "gap_resume_timestamp": "2024-02-09 22:00:00+00:00",
+          "missing_candles": "1",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "47559.63",
+          "pre_gap_ma": "46566.64",
+          "remarks": "Missing 1 candle(s) between 2024-02-09 20:00:00+00:00 and 2024-02-09 22:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0005",
+          "report_date": "2024-05-31",
+          "gap_start_timestamp": "2024-05-31 21:00:00+00:00",
+          "gap_resume_timestamp": "2024-06-01 00:00:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "67488.42",
+          "pre_gap_ma": "68007.50",
+          "remarks": "Missing 2 candle(s) between 2024-05-31 21:00:00+00:00 and 2024-06-01 00:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0006",
+          "report_date": "2024-10-26",
+          "gap_start_timestamp": "2024-10-26 15:00:00+00:00",
+          "gap_resume_timestamp": "2024-10-26 18:00:00+00:00",
+          "missing_candles": "2",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T07403",
+          "pre_gap_close_points": "66795.54",
+          "pre_gap_ma": "66878.33",
+          "remarks": "Missing 2 candle(s) between 2024-10-26 15:00:00+00:00 and 2024-10-26 18:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0007",
+          "report_date": "2025-10-25",
+          "gap_start_timestamp": "2025-10-25 14:00:00+00:00",
+          "gap_resume_timestamp": "2025-10-25 21:00:00+00:00",
+          "missing_candles": "6",
+          "had_active_trade": "YES",
+          "forced_exit_trade_id": "T09614",
+          "pre_gap_close_points": "111605.64",
+          "pre_gap_ma": "111136.76",
+          "remarks": "Missing 6 candle(s) between 2025-10-25 14:00:00+00:00 and 2025-10-25 21:00:00+00:00; resumed on next available row."
+        },
+        {
+          "event_id": "G0008",
+          "report_date": "2026-05-08",
+          "gap_start_timestamp": "2026-05-08 00:00:00+00:00",
+          "gap_resume_timestamp": "2026-05-08 08:00:00+00:00",
+          "missing_candles": "7",
+          "had_active_trade": "NO",
+          "forced_exit_trade_id": "",
+          "pre_gap_close_points": "79827.67",
+          "pre_gap_ma": "80551.17",
+          "remarks": "Missing 7 candle(s) between 2026-05-08 00:00:00+00:00 and 2026-05-08 08:00:00+00:00; resumed on next available row."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+event_id,report_date,gap_start_timestamp,gap_resume_timestamp,missing_candles,had_active_trade,forced_exit_trade_id,pre_gap_close_points,pre_gap_ma,remarks
