@@ -7,12 +7,12 @@ BTC-specific backtests.
 
 ### `fetch_btc_intraday.py`
 
-Fetches one year of BTC-USD intraday candles and calculates the same technical
+Fetches five years of BTC-USD intraday candles and calculates the same technical
 indicators used by the other asset modules in this repo.
 
 #### Features
 
-- **One-year BTC-USD history**: pulls a canonical 15-minute series for the last 365 days
+- **Five-year BTC-USD history**: pulls a canonical 15-minute series for the last 1,825 days
 - **Multiple timeframes**: writes 15-minute, 30-minute, and 1-hour CSV files
 - **Coinbase-backed collection**: uses Coinbase Exchange public candles instead of `yfinance`
 - **Consistent indicators**: computes RSI, MACD, Bollinger Bands, ATR, stochastic, moving averages, and price/volume metrics
@@ -27,7 +27,7 @@ python fetch_btc_intraday.py
 
 #### Provider Choice
 
-`yfinance` does not provide a true one-year `BTC-USD` history for `15m` and `30m`
+`yfinance` does not provide a true multi-year `BTC-USD` history for `15m` and `30m`
 intervals. This script uses Coinbase Exchange public candles for the canonical
 15-minute series, then derives:
 
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 
 - Timestamps are stored in UTC
 - The script only writes closed candles
-- All three outputs share a consistent one-year source range
+- All three outputs share a consistent five-year source range
 
 ### `btc_ma_continuous_trailing_multi_timeframe.py`
 
@@ -99,3 +99,62 @@ python btc_ma_continuous_trailing_multi_timeframe.py --initial-start-time 14:30
 - Uses existing BTC CSVs from `../data/`
 - Ignores precomputed moving averages in the CSV and computes fresh day-average MAs from raw closes
 - Leaves earlier experimental BTC outputs under `common-strategies/` untouched
+
+### `btc_ma_continuous_trailing_multi_timeframe_capital.py`
+
+Runs the same BTC continuous trailing-MA strategy as the point-based script, but
+sizes every trade to a fixed USD notional and tracks realized equity.
+
+#### Features
+
+- **Same trade engine**: reuses the existing BTC MA signal, stop, gap, and end-of-data logic
+- **Fixed capital deployment**: uses `$1,000,000` notional per trade by default
+- **Multiple timeframe tests in one run**:
+  - `15m` with `MA 96`
+  - `30m` with `MA 48`
+  - `1h` with `MA 24`
+- **Dual reporting**: keeps raw point metrics and adds USD P&L, BTC quantity, equity, and drawdown outputs
+- **Equity curve export**: writes `equity_curve.csv` for each tested timeframe
+
+#### Usage
+
+```bash
+cd btc/python
+python btc_ma_continuous_trailing_multi_timeframe_capital.py
+```
+
+Optional examples:
+
+```bash
+# Run only 1h with a different fixed trade notional
+python btc_ma_continuous_trailing_multi_timeframe_capital.py --timeframes 1h --capital 500000
+
+# Start evaluation from 14:30 UTC on the first candidate date
+python btc_ma_continuous_trailing_multi_timeframe_capital.py --initial-start-time 14:30
+```
+
+#### Output
+
+- Run folders are created in `../results/`
+- Default run names look like `btc_ma_continuous_multi_timeframe_capital_YYYYMMDD_HHMMSS`
+- Each tested timeframe gets its own subdirectory such as:
+  - `15m_ma96/`
+  - `30m_ma48/`
+  - `1h_ma24/`
+- Each timeframe writes:
+  - `trades.csv`
+  - `gap_events.csv`
+  - `daywise_summary.csv`
+  - `monthly_summary.csv`
+  - `yearly_summary.csv`
+  - `equity_curve.csv`
+  - `summary.json`
+  - `summary.md`
+  - `backtest.log`
+
+#### Notes
+
+- Uses the existing BTC CSVs from `../data/`
+- Keeps trade and gap parity with the point-based BTC MA backtest
+- Uses fixed-notional sizing, not compounding position sizing
+- Assumes no brokerage, slippage, or borrow costs

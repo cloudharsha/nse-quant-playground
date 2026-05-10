@@ -1,5 +1,5 @@
 """
-Fetch one year of BTC-USD intraday candles from Coinbase Exchange.
+Fetch five years of BTC-USD intraday candles from Coinbase Exchange.
 
 The 15-minute series is fetched directly from Coinbase's public candles API.
 The 30-minute and 1-hour series are derived from that canonical 15-minute data.
@@ -23,7 +23,7 @@ import pandas as pd
 
 PRODUCT_ID = "BTC-USD"
 OUTPUT_SYMBOL = "BTCUSD"
-LOOKBACK_DAYS = 365
+LOOKBACK_DAYS = 365 * 5
 BASE_GRANULARITY_SECONDS = 900
 WINDOW_HOURS = 72
 TARGET_INTERVALS = ("15m", "30m", "1h")

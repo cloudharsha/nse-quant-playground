@@ -1,0 +1,8 @@
+date,status,trades,gap_events,long_trades,short_trades,stop_exits,gap_exits,end_of_data_exits,winning_trades,losing_trades,break_even_trades,total_points,average_points,max_profit_points,max_loss_points,max_consecutive_wins,max_consecutive_losses,max_drawdown_points,remarks
+2025-05-15,TRADED,7,0,4,3,7,0,0,1,6,0,-679.57,-97.08,639.45,-384.69,1,5,1141.58,
+2025-05-16,TRADED,11,0,7,4,11,0,0,1,10,0,-1256.26,-114.21,116.36,-445.97,1,8,1262.47,
+2025-05-17,TRADED,9,0,3,6,9,0,0,2,7,0,-386.28,-42.92,149.65,-233.64,1,5,472.02,
+2025-05-18,TRADED,9,0,5,4,9,0,0,1,8,0,196.85,21.87,600.74,-102.09,1,5,270.82,
+2025-05-19,TRADED,2,0,1,1,2,0,0,1,1,0,-522.27,-261.13,106.99,-629.26,1,1,629.26,
+2025-05-20,TRADED,10,0,4,6,10,0,0,2,8,0,-1482.79,-148.28,522.85,-713.33,1,6,2005.64,
+2025-05-21,TRADED,1,0,1,0,0,0,1,1,0,0,531.20,531.20,531.20,531.20,1,0,0.00,

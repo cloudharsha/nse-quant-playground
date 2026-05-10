@@ -1,0 +1,2 @@
+period,days,held_days,flat_days,skipped_days,trades,gap_events,long_trades,short_trades,stop_exits,gap_exits,end_of_data_exits,winning_days,losing_days,break_even_days,total_points,average_points,max_profit_date,max_profit_points,max_loss_date,max_loss_points,max_consecutive_wins,max_consecutive_losses,max_drawdown_points
+2025,7,0,0,0,35,0,19,16,34,0,1,1,6,0,-5752.58,-821.80,2025-05-18,34.25,2025-05-19,-1969.22,1,3,5752.58
