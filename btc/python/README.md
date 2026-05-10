@@ -159,6 +159,61 @@ python btc_ma_continuous_trailing_multi_timeframe_capital.py --initial-start-tim
 - Uses fixed-notional sizing, not compounding position sizing
 - Assumes no brokerage, slippage, or borrow costs
 
+### `btc_ma_25_50_crossover_capital.py`
+
+Runs a BTC `15m` moving-average crossover backtest that flips between long and
+short on confirmed `25/50` SMA crosses and sizes each trade to a fixed USD
+notional.
+
+#### Features
+
+- **15m-only workflow**: reads `../data/BTCUSD_data_15m.csv`
+- **Confirmed crossover entries**: goes long on `25-SMA` crossing above `50-SMA` and short on the reverse cross
+- **Fixed capital deployment**: uses `$100,000` notional per trade by default
+- **Symmetric reversal model**: closes and reverses at the same next-candle boundary when the signal flips
+- **Detailed reporting**: writes trades, gaps, daywise, monthly, yearly, equity-curve, JSON, Markdown, and log outputs
+
+#### Usage
+
+```bash
+cd btc/python
+python btc_ma_25_50_crossover_capital.py
+```
+
+Optional examples:
+
+```bash
+# Run with a different fixed trade notional
+python btc_ma_25_50_crossover_capital.py --capital 250000
+
+# Restrict the backtest date range
+python btc_ma_25_50_crossover_capital.py --start-date 2024-01-01 --end-date 2024-12-31
+```
+
+#### Output
+
+- Run folders are created in `../results/`
+- Default run names look like `btc_ma_25_50_crossover_capital_YYYYMMDD_HHMMSS`
+- Each run writes a single timeframe subdirectory such as:
+  - `15m_ma25_50/`
+- The timeframe directory writes:
+  - `trades.csv`
+  - `gap_events.csv`
+  - `daywise_summary.csv`
+  - `monthly_summary.csv`
+  - `yearly_summary.csv`
+  - `equity_curve.csv`
+  - `summary.json`
+  - `summary.md`
+  - `backtest.log`
+
+#### Notes
+
+- Computes fresh `25-SMA` and `50-SMA` values from raw `15m` closes
+- Uses a conservative gap policy: live trades are flattened before a data gap
+- Uses fixed-notional sizing, not compounding position sizing
+- Assumes no brokerage, slippage, or borrow costs
+
 ### `btc_ma_target_trailing_multi_timeframe_capital.py`
 
 Runs a BTC multi-timeframe MA strategy with fixed-notional capital, a trailing

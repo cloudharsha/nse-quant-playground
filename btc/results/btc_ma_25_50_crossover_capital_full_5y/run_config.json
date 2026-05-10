@@ -1,0 +1,144 @@
+{
+  "args": {
+    "data_file": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data/BTCUSD_data_15m.csv",
+    "results_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results",
+    "run_name": "btc_ma_25_50_crossover_capital_full_5y",
+    "start_date": "",
+    "end_date": "",
+    "capital": 100000.0,
+    "short_ma": 25,
+    "long_ma": 50
+  },
+  "resolved_paths": {
+    "repo_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground",
+    "data_file": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/data/BTCUSD_data_15m.csv",
+    "results_root": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results",
+    "output_dir": "/mnt/c/Users/harsh/Desktop/workspace/git/nse-quant-playground/btc/results/btc_ma_25_50_crossover_capital_full_5y"
+  },
+  "timezone": "UTC",
+  "capital_mode": "fixed_notional_per_trade",
+  "cost_model": "none",
+  "short_mode": "enabled_symmetric_1x",
+  "gap_policy": "force_exit_before_gap_and_wait_for_next_completed_post_gap_candle",
+  "execution_model": "signal_on_completed_candle_execute_next_boundary_at_signal_close",
+  "timeframe_configuration": {
+    "timeframe": "15m",
+    "input_file": "btc/data/BTCUSD_data_15m.csv",
+    "short_ma_period": 25,
+    "long_ma_period": 50,
+    "step_minutes": 15
+  },
+  "run_metadata": {
+    "first_csv_timestamp": "2021-05-11 19:00:00+00:00",
+    "first_signal_usable_timestamp": "2021-05-12 07:30:00+00:00",
+    "total_source_rows": 175072,
+    "filtered_rows": 175072,
+    "processed_rows": 175072,
+    "detected_gaps": [
+      {
+        "event_id": "G0001",
+        "report_date": "2021-11-24",
+        "gap_start_timestamp": "2021-11-24 00:00:00+00:00",
+        "gap_resume_timestamp": "2021-11-24 00:45:00+00:00",
+        "missing_candles": "2",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T00450",
+        "pre_gap_close_points": "57599.99",
+        "pre_gap_short_ma": "57568.16",
+        "pre_gap_long_ma": "57270.66",
+        "remarks": "Missing 2 candle(s) between 2021-11-24 00:00:00+00:00 and 2021-11-24 00:45:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0002",
+        "report_date": "2023-03-04",
+        "gap_start_timestamp": "2023-03-04 16:45:00+00:00",
+        "gap_resume_timestamp": "2023-03-04 21:30:00+00:00",
+        "missing_candles": "18",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T01525",
+        "pre_gap_close_points": "22330.27",
+        "pre_gap_short_ma": "22348.18",
+        "pre_gap_long_ma": "22351.23",
+        "remarks": "Missing 18 candle(s) between 2023-03-04 16:45:00+00:00 and 2023-03-04 21:30:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0003",
+        "report_date": "2023-05-19",
+        "gap_start_timestamp": "2023-05-19 07:30:00+00:00",
+        "gap_resume_timestamp": "2023-05-19 08:15:00+00:00",
+        "missing_candles": "2",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T01704",
+        "pre_gap_close_points": "26863.85",
+        "pre_gap_short_ma": "26857.69",
+        "pre_gap_long_ma": "26843.59",
+        "remarks": "Missing 2 candle(s) between 2023-05-19 07:30:00+00:00 and 2023-05-19 08:15:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0004",
+        "report_date": "2024-02-09",
+        "gap_start_timestamp": "2024-02-09 21:30:00+00:00",
+        "gap_resume_timestamp": "2024-02-09 22:00:00+00:00",
+        "missing_candles": "1",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T02354",
+        "pre_gap_close_points": "47419.09",
+        "pre_gap_short_ma": "47531.24",
+        "pre_gap_long_ma": "47292.51",
+        "remarks": "Missing 1 candle(s) between 2024-02-09 21:30:00+00:00 and 2024-02-09 22:00:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0005",
+        "report_date": "2024-05-31",
+        "gap_start_timestamp": "2024-05-31 22:00:00+00:00",
+        "gap_resume_timestamp": "2024-05-31 23:15:00+00:00",
+        "missing_candles": "4",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T02617",
+        "pre_gap_close_points": "67542.93",
+        "pre_gap_short_ma": "67370.80",
+        "pre_gap_long_ma": "67712.37",
+        "remarks": "Missing 4 candle(s) between 2024-05-31 22:00:00+00:00 and 2024-05-31 23:15:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0006",
+        "report_date": "2024-10-26",
+        "gap_start_timestamp": "2024-10-26 16:00:00+00:00",
+        "gap_resume_timestamp": "2024-10-26 17:15:00+00:00",
+        "missing_candles": "4",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T02939",
+        "pre_gap_close_points": "66818.88",
+        "pre_gap_short_ma": "66902.95",
+        "pre_gap_long_ma": "66951.24",
+        "remarks": "Missing 4 candle(s) between 2024-10-26 16:00:00+00:00 and 2024-10-26 17:15:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0007",
+        "report_date": "2025-10-25",
+        "gap_start_timestamp": "2025-10-25 15:00:00+00:00",
+        "gap_resume_timestamp": "2025-10-25 21:00:00+00:00",
+        "missing_candles": "23",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T03748",
+        "pre_gap_close_points": "111466.20",
+        "pre_gap_short_ma": "111663.56",
+        "pre_gap_long_ma": "111514.48",
+        "remarks": "Missing 23 candle(s) between 2025-10-25 15:00:00+00:00 and 2025-10-25 21:00:00+00:00; crossover detection resumes from the next completed candle."
+      },
+      {
+        "event_id": "G0008",
+        "report_date": "2026-05-08",
+        "gap_start_timestamp": "2026-05-08 01:15:00+00:00",
+        "gap_resume_timestamp": "2026-05-08 07:45:00+00:00",
+        "missing_candles": "25",
+        "had_active_trade": "YES",
+        "forced_exit_trade_id": "T04177",
+        "pre_gap_close_points": "79593.10",
+        "pre_gap_short_ma": "79919.42",
+        "pre_gap_long_ma": "80036.51",
+        "remarks": "Missing 25 candle(s) between 2026-05-08 01:15:00+00:00 and 2026-05-08 07:45:00+00:00; crossover detection resumes from the next completed candle."
+      }
+    ]
+  }
+}
